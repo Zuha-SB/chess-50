@@ -132,11 +132,11 @@ export const rook = (color: ChessColor) =>
     color,
     type: "rook",
     move(board) {
-      return horizontal(board, this);
+      return horizontal(board, this, 7);
     },
   });
 
-const horizontal = (board: BoardState, piece: Piece) => {
+const horizontal = (board: BoardState, piece: Piece, max: number) => {
   const pieceWithCoordinates = getPieceWithCoordinates(board, piece.id);
   if (pieceWithCoordinates) {
     const movement: Move[] = [];
@@ -147,7 +147,8 @@ const horizontal = (board: BoardState, piece: Piece) => {
         pieceWithCoordinates.row,
         1,
         0,
-        pieceWithCoordinates.piece.color
+        pieceWithCoordinates.piece.color,
+        max
       )
     );
     movement.push(
@@ -157,7 +158,8 @@ const horizontal = (board: BoardState, piece: Piece) => {
         pieceWithCoordinates.row,
         -1,
         0,
-        pieceWithCoordinates.piece.color
+        pieceWithCoordinates.piece.color,
+        max
       )
     );
     movement.push(
@@ -167,7 +169,8 @@ const horizontal = (board: BoardState, piece: Piece) => {
         pieceWithCoordinates.row,
         0,
         1,
-        pieceWithCoordinates.piece.color
+        pieceWithCoordinates.piece.color,
+        max
       )
     );
     movement.push(
@@ -177,7 +180,8 @@ const horizontal = (board: BoardState, piece: Piece) => {
         pieceWithCoordinates.row,
         0,
         -1,
-        pieceWithCoordinates.piece.color
+        pieceWithCoordinates.piece.color,
+        max
       )
     );
     return movement;
@@ -185,7 +189,7 @@ const horizontal = (board: BoardState, piece: Piece) => {
   return [];
 };
 
-const diagonal = (board: BoardState, piece: Piece) => {
+const diagonal = (board: BoardState, piece: Piece, max: number) => {
   const pieceWithCoordinates = getPieceWithCoordinates(board, piece.id);
   if (pieceWithCoordinates) {
     const movement: Move[] = [];
@@ -196,7 +200,8 @@ const diagonal = (board: BoardState, piece: Piece) => {
         pieceWithCoordinates.row,
         1,
         1,
-        pieceWithCoordinates.piece.color
+        pieceWithCoordinates.piece.color,
+        max
       )
     );
     movement.push(
@@ -206,7 +211,8 @@ const diagonal = (board: BoardState, piece: Piece) => {
         pieceWithCoordinates.row,
         -1,
         -1,
-        pieceWithCoordinates.piece.color
+        pieceWithCoordinates.piece.color,
+        max
       )
     );
     movement.push(
@@ -216,7 +222,8 @@ const diagonal = (board: BoardState, piece: Piece) => {
         pieceWithCoordinates.row,
         1,
         -1,
-        pieceWithCoordinates.piece.color
+        pieceWithCoordinates.piece.color,
+        max
       )
     );
     movement.push(
@@ -226,7 +233,8 @@ const diagonal = (board: BoardState, piece: Piece) => {
         pieceWithCoordinates.row,
         -1,
         1,
-        pieceWithCoordinates.piece.color
+        pieceWithCoordinates.piece.color,
+        max
       )
     );
     return movement;
@@ -240,10 +248,11 @@ const longMovement = (
   row: number,
   columnMovement: number,
   rowMovement: number,
-  color: ChessColor
+  color: ChessColor,
+  max: number
 ) => {
   const movement: Move[] = [];
-  for (let offset = 1; offset < 8; offset++) {
+  for (let offset = 1; offset < max; offset++) {
     const offsetRow = row + offset * rowMovement;
     const offsetColumn = column + offset * columnMovement;
     if (
@@ -283,7 +292,7 @@ export const bishop = (color: ChessColor) =>
     color,
     type: "bishop",
     move(board) {
-      return diagonal(board, this);
+      return diagonal(board, this, 7);
     },
   });
 
@@ -291,9 +300,8 @@ export const king = (color: ChessColor) =>
   piece({
     color,
     type: "king",
-    move(state) {
-      console.log(this.color);
-      return [];
+    move(board) {
+      return [...horizontal(board, this, 1), ...diagonal(board, this, 1)];
     },
   });
 
@@ -301,14 +309,11 @@ export const queen = (color: ChessColor) =>
   piece({
     color,
     type: "queen",
-    move(state) {
-      console.log(this.color);
-      return [];
+    move(board) {
+      return [...horizontal(board, this, 7), ...diagonal(board, this, 7)];
     },
   });
 
 // TODO
 // knight
-// queen
-// king
 // CHECK / CHECKMATE / STALEMATE
