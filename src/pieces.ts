@@ -38,11 +38,40 @@ export const pawn = (color: ChessColor) =>
     move(board) {
       const piece = getPieceWithCoordinates(board, this.id);
       if (piece) {
-        const forward = {
+        const movement = [];
+        const direction = this.color === "dark" ? 1 : -1;
+        // HANDLE 2
+        const startingLight = this.color === "light" && piece.row === 6;
+        const startingDark = this.color === "dark" && piece.row === 1;
+        if (startingDark || startingLight) {
+          movement.push({
+            column: piece.column,
+            row: piece.row + direction * 2,
+          });
+        }
+        // HANDLE 1
+        movement.push({
           column: piece.column,
-          row: piece.row + (this.color === "dark" ? 1 : -1),
-        };
-        return [forward];
+          row: piece.row + direction,
+        });
+        // HANDLE CAPTURE
+        const forwardLeft =
+          board.tiles[piece.row + direction][piece.column - 1];
+        if (forwardLeft && forwardLeft.color !== this.color) {
+          movement.push({
+            column: piece.column - 1,
+            row: piece.row + direction,
+          });
+        }
+        const forwardRight =
+          board.tiles[piece.row + direction][piece.column + 1];
+        if (forwardRight && forwardRight.color !== this.color) {
+          movement.push({
+            column: piece.column + 1,
+            row: piece.row + direction,
+          });
+        }
+        return movement;
       }
       return [];
     },
@@ -97,3 +126,12 @@ export const queen = (color: ChessColor) =>
       return [];
     },
   });
+
+// TODO
+// pawn en passant
+// pawn blocked
+// rook
+// bishop
+// knight
+// queen
+// king
