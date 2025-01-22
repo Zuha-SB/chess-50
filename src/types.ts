@@ -9,8 +9,8 @@ export type PieceType =
   | "pawn";
 
 export interface Move {
-  x: number;
-  y: number;
+  column: number;
+  row: number;
 }
 
 export type MoveFunction = (this: Piece, state: BoardState) => Move[];
@@ -20,6 +20,7 @@ export interface Piece {
   image: HTMLImageElement;
   color: ChessColor;
   move: MoveFunction;
+  type: PieceType;
 }
 
 export interface BoardState {

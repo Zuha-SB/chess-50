@@ -1,4 +1,5 @@
 import type { ChessColor, MoveFunction, Piece, PieceType } from "./types";
+import { getPieceWithCoordinates } from "./utility";
 
 const loadImage = (() => {
   const cache: Record<string, HTMLImageElement> = {};
@@ -26,6 +27,7 @@ const piece = ({
     color,
     image: loadImage(`${color}_${type}.png`),
     move,
+    type,
   };
 };
 
@@ -33,8 +35,15 @@ export const pawn = (color: ChessColor) =>
   piece({
     color,
     type: "pawn",
-    move(state) {
-      console.log(this.color);
+    move(board) {
+      const piece = getPieceWithCoordinates(board, this.id);
+      if (piece) {
+        const forward = {
+          column: piece.column,
+          row: piece.row + (this.color === "dark" ? 1 : -1),
+        };
+        return [forward];
+      }
       return [];
     },
   });

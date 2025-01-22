@@ -1,10 +1,6 @@
 import { bishop, king, knight, pawn, queen, rook } from "../pieces";
-import type {
-  BoardState,
-  ChessColor,
-  Piece,
-  PieceWithCoordinates,
-} from "../types";
+import type { BoardState, ChessColor, Piece } from "../types";
+import { getPiecesWithCoordinates, getPieceWithCoordinates } from "../utility";
 
 // CONSTANTS
 const DARK = "black";
@@ -40,7 +36,7 @@ const backRow = (color: ChessColor) => [
   rook(color),
 ];
 
-const EMPTY_ROW = Array.from({ length: 8 }).map(() => null);
+const emptyRow = () => Array.from({ length: 8 }).map(() => null);
 
 const board: BoardState = {
   turn: "light",
@@ -49,23 +45,43 @@ const board: BoardState = {
   tiles: [
     backRow("dark"),
     Array.from({ length: 8 }).map(() => pawn("dark")),
-    EMPTY_ROW,
-    EMPTY_ROW,
-    EMPTY_ROW,
-    EMPTY_ROW,
+    emptyRow(),
+    emptyRow(),
+    emptyRow(),
+    emptyRow(),
     Array.from({ length: 8 }).map(() => pawn("light")),
     backRow("light"),
   ],
 };
 
 canvas.onclick = (event) => {
+  const selectedId = board.selectedId;
+  board.selectedId = "";
   const rect = canvas.getBoundingClientRect();
   const x = event.pageX - rect.x - NOTATION_SIZE;
   const y = event.pageY - rect.y - NOTATION_SIZE;
   if (x >= 0 && y >= 0) {
     const column = Math.floor(x / TILE_SIZE);
     const row = Math.floor(y / TILE_SIZE);
-    board.selectedId = board.tiles[row]?.[column]?.id ?? "";
+    // TODO MOVE
+    const selected = getPieceWithCoordinates(board, selectedId);
+    if (selected) {
+      const movement = selected.piece
+        .move(board)
+        .find((move) => move.column === column && move.row === row);
+      if (movement) {
+        board.tiles[selected.row][selected.column] = null;
+        board.tiles[row][column] = selected.piece;
+        board.turn = board.turn === "light" ? "dark" : "light";
+      }
+    }
+    const piece = board.tiles[row]?.[column];
+    if (piece?.color === board.turn) {
+      const move = piece.move(board);
+      if (move.length) {
+        board.selectedId = piece.id;
+      }
+    }
   }
   draw();
 };
@@ -131,28 +147,12 @@ const drawBoard = () => {
   });
 };
 
-const getPiecesWithCoordinates = () => {
-  return board.tiles
-    .flatMap((row, rowIndex) =>
-      row.map((piece, columnIndex) =>
-        piece
-          ? {
-              piece,
-              row: rowIndex,
-              column: columnIndex,
-            }
-          : null
-      )
-    )
-    .filter((_: PieceWithCoordinates | null): _ is PieceWithCoordinates => !!_);
-};
-
 const drawSelected = () => {
-  const selected = getPiecesWithCoordinates().find(
+  const selected = getPiecesWithCoordinates(board).find(
     ({ piece }) => piece.id === board.selectedId
   );
   if (selected) {
-    context.fillStyle = "rgba(0, 255, 0, .5)";
+    context.fillStyle = "rgba(0, 255, 0, .7)";
     context.fillRect(
       NOTATION_SIZE + selected.column * TILE_SIZE,
       NOTATION_SIZE + selected.row * TILE_SIZE,
@@ -162,11 +162,37 @@ const drawSelected = () => {
   }
 };
 
+const drawMovement = () => {
+  const piece = getPieceWithCoordinates(board, board.selectedId);
+  piece?.piece.move(board).forEach((movement) => {
+    context.fillStyle = "rgba(126, 126, 126, .7)";
+    context.beginPath();
+    context.ellipse(
+      NOTATION_SIZE + TILE_SIZE / 2 + movement.column * TILE_SIZE,
+      NOTATION_SIZE + TILE_SIZE / 2 + movement.row * TILE_SIZE,
+      TILE_SIZE / 4,
+      TILE_SIZE / 4,
+      0,
+      0,
+      2 * Math.PI
+    );
+    context.fill();
+  });
+};
+
 const draw = () => {
   drawNotation();
   drawTiles();
   drawSelected();
+  drawMovement();
   drawBoard();
+  console.log(
+    board.tiles
+      .map((row) =>
+        row.map((column) => (column ? column.type[0] : " ")).join(" ")
+      )
+      .join("\n")
+  );
 };
 
 const drawAfterWaiting = async () => {
