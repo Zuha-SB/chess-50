@@ -132,55 +132,107 @@ export const rook = (color: ChessColor) =>
     color,
     type: "rook",
     move(board) {
-      const piece = getPieceWithCoordinates(board, this.id);
-      if (piece) {
-        const movement: Move[] = [];
-        movement.push(
-          ...longMovement(
-            board,
-            piece.column,
-            piece.row,
-            1,
-            0,
-            piece.piece.color
-          )
-        );
-        movement.push(
-          ...longMovement(
-            board,
-            piece.column,
-            piece.row,
-            -1,
-            0,
-            piece.piece.color
-          )
-        );
-        movement.push(
-          ...longMovement(
-            board,
-            piece.column,
-            piece.row,
-            0,
-            1,
-            piece.piece.color
-          )
-        );
-        movement.push(
-          ...longMovement(
-            board,
-            piece.column,
-            piece.row,
-            0,
-            -1,
-            piece.piece.color
-          )
-        );
-        console.log(movement);
-        return movement;
-      }
-      return [];
+      return horizontal(board, this);
     },
   });
+
+const horizontal = (board: BoardState, piece: Piece) => {
+  const pieceWithCoordinates = getPieceWithCoordinates(board, piece.id);
+  if (pieceWithCoordinates) {
+    const movement: Move[] = [];
+    movement.push(
+      ...longMovement(
+        board,
+        pieceWithCoordinates.column,
+        pieceWithCoordinates.row,
+        1,
+        0,
+        pieceWithCoordinates.piece.color
+      )
+    );
+    movement.push(
+      ...longMovement(
+        board,
+        pieceWithCoordinates.column,
+        pieceWithCoordinates.row,
+        -1,
+        0,
+        pieceWithCoordinates.piece.color
+      )
+    );
+    movement.push(
+      ...longMovement(
+        board,
+        pieceWithCoordinates.column,
+        pieceWithCoordinates.row,
+        0,
+        1,
+        pieceWithCoordinates.piece.color
+      )
+    );
+    movement.push(
+      ...longMovement(
+        board,
+        pieceWithCoordinates.column,
+        pieceWithCoordinates.row,
+        0,
+        -1,
+        pieceWithCoordinates.piece.color
+      )
+    );
+    return movement;
+  }
+  return [];
+};
+
+const diagonal = (board: BoardState, piece: Piece) => {
+  const pieceWithCoordinates = getPieceWithCoordinates(board, piece.id);
+  if (pieceWithCoordinates) {
+    const movement: Move[] = [];
+    movement.push(
+      ...longMovement(
+        board,
+        pieceWithCoordinates.column,
+        pieceWithCoordinates.row,
+        1,
+        1,
+        pieceWithCoordinates.piece.color
+      )
+    );
+    movement.push(
+      ...longMovement(
+        board,
+        pieceWithCoordinates.column,
+        pieceWithCoordinates.row,
+        -1,
+        -1,
+        pieceWithCoordinates.piece.color
+      )
+    );
+    movement.push(
+      ...longMovement(
+        board,
+        pieceWithCoordinates.column,
+        pieceWithCoordinates.row,
+        1,
+        -1,
+        pieceWithCoordinates.piece.color
+      )
+    );
+    movement.push(
+      ...longMovement(
+        board,
+        pieceWithCoordinates.column,
+        pieceWithCoordinates.row,
+        -1,
+        1,
+        pieceWithCoordinates.piece.color
+      )
+    );
+    return movement;
+  }
+  return [];
+};
 
 const longMovement = (
   board: BoardState,
@@ -230,9 +282,8 @@ export const bishop = (color: ChessColor) =>
   piece({
     color,
     type: "bishop",
-    move(state) {
-      console.log(this.color);
-      return [];
+    move(board) {
+      return diagonal(board, this);
     },
   });
 
@@ -257,7 +308,6 @@ export const queen = (color: ChessColor) =>
   });
 
 // TODO
-// bishop
 // knight
 // queen
 // king
