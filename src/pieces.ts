@@ -1,4 +1,11 @@
-import type { ChessColor, Move, MoveFunction, Piece, PieceType } from "./types";
+import type {
+  BoardState,
+  ChessColor,
+  Move,
+  MoveFunction,
+  Piece,
+  PieceType,
+} from "./types";
 import { getPieceWithCoordinates } from "./utility";
 
 const loadImage = (() => {
@@ -124,11 +131,90 @@ export const rook = (color: ChessColor) =>
   piece({
     color,
     type: "rook",
-    move(state) {
-      console.log(this.color);
+    move(board) {
+      const piece = getPieceWithCoordinates(board, this.id);
+      if (piece) {
+        const movement: Move[] = [];
+        movement.push(
+          ...longMovement(
+            board,
+            piece.column,
+            piece.row,
+            1,
+            0,
+            piece.piece.color
+          )
+        );
+        movement.push(
+          ...longMovement(
+            board,
+            piece.column,
+            piece.row,
+            -1,
+            0,
+            piece.piece.color
+          )
+        );
+        movement.push(
+          ...longMovement(
+            board,
+            piece.column,
+            piece.row,
+            0,
+            1,
+            piece.piece.color
+          )
+        );
+        movement.push(
+          ...longMovement(
+            board,
+            piece.column,
+            piece.row,
+            0,
+            -1,
+            piece.piece.color
+          )
+        );
+        console.log(movement);
+        return movement;
+      }
       return [];
     },
   });
+
+const longMovement = (
+  board: BoardState,
+  column: number,
+  row: number,
+  columnMovement: number,
+  rowMovement: number,
+  color: ChessColor
+) => {
+  const movement: Move[] = [];
+  for (let offset = 1; offset < 8; offset++) {
+    const offsetRow = row + offset * rowMovement;
+    const offsetColumn = column + offset * columnMovement;
+    if (
+      offsetRow < 0 ||
+      offsetColumn < 0 ||
+      offsetRow >= 8 ||
+      offsetColumn >= 8
+    ) {
+      break;
+    }
+    const blocker = board.tiles[offsetRow][offsetColumn];
+    if (blocker?.color !== color) {
+      movement.push({
+        row: offsetRow,
+        column: offsetColumn,
+      });
+    }
+    if (blocker) {
+      break;
+    }
+  }
+  return movement;
+};
 
 export const knight = (color: ChessColor) =>
   piece({
@@ -171,8 +257,8 @@ export const queen = (color: ChessColor) =>
   });
 
 // TODO
-// rook
 // bishop
 // knight
 // queen
 // king
+// CHECK / CHECKMATE / STALEMATE
