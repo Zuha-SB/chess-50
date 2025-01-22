@@ -1,5 +1,10 @@
 import { bishop, king, knight, pawn, queen, rook } from "../pieces";
-import type { BoardState, ChessColor } from "../types";
+import type {
+  BoardState,
+  ChessColor,
+  Piece,
+  PieceWithCoordinates,
+} from "../types";
 
 // CONSTANTS
 const DARK = "black";
@@ -7,6 +12,8 @@ const LIGHT = "white";
 const TILE_SIZE = 70;
 const NOTATION_SIZE = TILE_SIZE / 2;
 const PIECE_PADDING = TILE_SIZE / 4;
+const WIDTH = TILE_SIZE * 8 + NOTATION_SIZE * 2;
+const HEIGHT = TILE_SIZE * 8 + NOTATION_SIZE * 2;
 // Files: Vertical columns labeled from "a" to "h" from left to right
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 // Ranks: Horizontal rows numbered from "1" to "8" from bottom to top.
@@ -16,8 +23,11 @@ const RANKS = ["8", "7", "6", "5", "4", "3", "2", "1"];
 const canvas = document.querySelector("canvas")!;
 const context = canvas.getContext("2d")!;
 canvas.style.border = `1px solid ${DARK}`;
-canvas.width = TILE_SIZE * 8 + NOTATION_SIZE * 2;
-canvas.height = TILE_SIZE * 8 + NOTATION_SIZE * 2;
+canvas.width = WIDTH * devicePixelRatio;
+canvas.height = HEIGHT * devicePixelRatio;
+canvas.style.width = `${WIDTH}px`;
+canvas.style.height = `${HEIGHT}px`;
+context.scale(devicePixelRatio, devicePixelRatio);
 
 const backRow = (color: ChessColor) => [
   rook(color),
@@ -33,6 +43,8 @@ const backRow = (color: ChessColor) => [
 const EMPTY_ROW = Array.from({ length: 8 }).map(() => null);
 
 const board: BoardState = {
+  turn: "light",
+  selectedId: "",
   lastMovedId: "",
   tiles: [
     backRow("dark"),
@@ -44,6 +56,18 @@ const board: BoardState = {
     Array.from({ length: 8 }).map(() => pawn("light")),
     backRow("light"),
   ],
+};
+
+canvas.onclick = (event) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.pageX - rect.x - NOTATION_SIZE;
+  const y = event.pageY - rect.y - NOTATION_SIZE;
+  if (x >= 0 && y >= 0) {
+    const column = Math.floor(x / TILE_SIZE);
+    const row = Math.floor(y / TILE_SIZE);
+    board.selectedId = board.tiles[row]?.[column]?.id ?? "";
+  }
+  draw();
 };
 
 const drawTiles = () => {
@@ -107,10 +131,58 @@ const drawBoard = () => {
   });
 };
 
+const getPiecesWithCoordinates = () => {
+  return board.tiles
+    .flatMap((row, rowIndex) =>
+      row.map((piece, columnIndex) =>
+        piece
+          ? {
+              piece,
+              row: rowIndex,
+              column: columnIndex,
+            }
+          : null
+      )
+    )
+    .filter((_: PieceWithCoordinates | null): _ is PieceWithCoordinates => !!_);
+};
+
+const drawSelected = () => {
+  const selected = getPiecesWithCoordinates().find(
+    ({ piece }) => piece.id === board.selectedId
+  );
+  if (selected) {
+    context.fillStyle = "rgba(0, 255, 0, .5)";
+    context.fillRect(
+      NOTATION_SIZE + selected.column * TILE_SIZE,
+      NOTATION_SIZE + selected.row * TILE_SIZE,
+      TILE_SIZE,
+      TILE_SIZE
+    );
+  }
+};
+
 const draw = () => {
-  drawTiles();
   drawNotation();
+  drawTiles();
+  drawSelected();
   drawBoard();
 };
 
-setInterval(draw, 1000 / 60);
+const drawAfterWaiting = async () => {
+  const pieces = board.tiles
+    .flat()
+    .filter((_: Piece | null): _ is Piece => !!_);
+  await Promise.all(
+    pieces.map((piece) => {
+      if (!piece.image.complete) {
+        return new Promise((resolve) => {
+          piece.image.addEventListener("load", resolve);
+        });
+      }
+    })
+  );
+  draw();
+};
+
+drawAfterWaiting();

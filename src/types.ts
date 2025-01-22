@@ -25,4 +25,12 @@ export interface Piece {
 export interface BoardState {
   tiles: Array<Array<Piece | null>>;
   lastMovedId: string;
+  turn: ChessColor;
+  selectedId: string;
+}
+
+export interface PieceWithCoordinates {
+  piece: Piece;
+  column: number;
+  row: number;
 }
