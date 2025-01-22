@@ -40,20 +40,24 @@ export const pawn = (color: ChessColor) =>
       if (piece) {
         const movement = [];
         const direction = this.color === "dark" ? 1 : -1;
+        const forward = board.tiles[piece.row + direction][piece.column];
+        const forward2 = board.tiles[piece.row + 2 * direction][piece.column];
         // HANDLE 2
         const startingLight = this.color === "light" && piece.row === 6;
         const startingDark = this.color === "dark" && piece.row === 1;
-        if (startingDark || startingLight) {
+        if ((startingDark || startingLight) && !forward && !forward2) {
           movement.push({
             column: piece.column,
             row: piece.row + direction * 2,
           });
         }
         // HANDLE 1
-        movement.push({
-          column: piece.column,
-          row: piece.row + direction,
-        });
+        if (!forward) {
+          movement.push({
+            column: piece.column,
+            row: piece.row + direction,
+          });
+        }
         // HANDLE CAPTURE
         const forwardLeft =
           board.tiles[piece.row + direction][piece.column - 1];
@@ -129,7 +133,6 @@ export const queen = (color: ChessColor) =>
 
 // TODO
 // pawn en passant
-// pawn blocked
 // rook
 // bishop
 // knight
