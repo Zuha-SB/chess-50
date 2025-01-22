@@ -1,4 +1,4 @@
-import type { ChessColor, MoveFunction, Piece, PieceType } from "./types";
+import type { ChessColor, Move, MoveFunction, Piece, PieceType } from "./types";
 import { getPieceWithCoordinates } from "./utility";
 
 const loadImage = (() => {
@@ -38,7 +38,7 @@ export const pawn = (color: ChessColor) =>
     move(board) {
       const piece = getPieceWithCoordinates(board, this.id);
       if (piece) {
-        const movement = [];
+        const movement: Move[] = [];
         const direction = this.color === "dark" ? 1 : -1;
         const forward = board.tiles[piece.row + direction][piece.column];
         const forward2 = board.tiles[piece.row + 2 * direction][piece.column];
@@ -58,21 +58,60 @@ export const pawn = (color: ChessColor) =>
             row: piece.row + direction,
           });
         }
+        const canEnPassant =
+          (this.color === "light" && piece.row === 3) ||
+          (this.color === "dark" && piece.row === 4);
         // HANDLE CAPTURE
         const forwardLeft =
           board.tiles[piece.row + direction][piece.column - 1];
+        const left = board.tiles[piece.row][piece.column - 1];
+        const leftPawnJustMoved =
+          canEnPassant &&
+          left?.type === "pawn" &&
+          left.id === board.lastMovedId &&
+          left.color !== this.color;
         if (forwardLeft && forwardLeft.color !== this.color) {
           movement.push({
             column: piece.column - 1,
             row: piece.row + direction,
           });
         }
+        if (leftPawnJustMoved) {
+          movement.push({
+            column: piece.column - 1,
+            row: piece.row + direction,
+            captures: [
+              {
+                column: piece.column - 1,
+                row: piece.row,
+              },
+            ],
+          });
+        }
         const forwardRight =
           board.tiles[piece.row + direction][piece.column + 1];
+        const right = board.tiles[piece.row][piece.column + 1];
+        const rightPawnJustMoved =
+          canEnPassant &&
+          right?.type === "pawn" &&
+          right.id === board.lastMovedId &&
+          right.color !== this.color;
         if (forwardRight && forwardRight.color !== this.color) {
           movement.push({
             column: piece.column + 1,
             row: piece.row + direction,
+          });
+        }
+        if (rightPawnJustMoved) {
+          movement.push({
+            column: piece.column + 1,
+            row: piece.row + direction,
+            captures: [
+              {
+                row: piece.row,
+                column: piece.column + 1,
+              },
+            ],
           });
         }
         return movement;
@@ -132,7 +171,6 @@ export const queen = (color: ChessColor) =>
   });
 
 // TODO
-// pawn en passant
 // rook
 // bishop
 // knight

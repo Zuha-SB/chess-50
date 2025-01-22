@@ -11,6 +11,10 @@ export type PieceType =
 export interface Move {
   column: number;
   row: number;
+  captures?: Array<{
+    column: number;
+    row: number;
+  }>;
 }
 
 export type MoveFunction = (this: Piece, state: BoardState) => Move[];

@@ -70,9 +70,13 @@ canvas.onclick = (event) => {
         .move(board)
         .find((move) => move.column === column && move.row === row);
       if (movement) {
+        movement.captures?.forEach((capture) => {
+          board.tiles[capture.row][capture.column] = null;
+        });
         board.tiles[selected.row][selected.column] = null;
         board.tiles[row][column] = selected.piece;
         board.turn = board.turn === "light" ? "dark" : "light";
+        board.lastMovedId = selectedId;
       }
     }
     const piece = board.tiles[row]?.[column];
@@ -126,7 +130,7 @@ const drawNotation = () => {
   });
 };
 
-const drawBoard = () => {
+const drawPieces = () => {
   board.tiles.forEach((row, rowIndex) => {
     row.forEach((piece, columnIndex) => {
       const image = piece?.image;
@@ -184,8 +188,8 @@ const draw = () => {
   drawNotation();
   drawTiles();
   drawSelected();
+  drawPieces();
   drawMovement();
-  drawBoard();
   console.log(
     board.tiles
       .map((row) =>
