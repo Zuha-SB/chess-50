@@ -12,7 +12,6 @@ import {
 import {
   getPieceById,
   bishop,
-  getAttacks,
   king,
   knight,
   pawn,
@@ -20,8 +19,9 @@ import {
   rook,
   filterNull,
   getCheckedKings,
+  executeMovement,
 } from "../chess";
-import type { BoardState, ChessColor, Piece } from "../types";
+import type { BoardState, ChessColor } from "../types";
 
 // CANVAS
 const canvas = document.querySelector("canvas")!;
@@ -88,48 +88,19 @@ canvas.onclick = (event) => {
   if (x >= 0 && y >= 0) {
     const column = Math.floor(x / TILE_SIZE);
     const row = Math.floor(y / TILE_SIZE);
-    // TODO MOVE
     const selected = getPieceById(board, selectedId);
     if (selected) {
       const movement = selected
-        .move(board)
-        .find((move) => move.column === column && move.row === row);
+        .movement(board)
+        .find((movement) => movement.column === column && movement.row === row);
       if (movement) {
-        board.tiles[selected.row]![selected.column] = null;
-        board.tiles[row]![column] = selected;
-        selected.row = row;
-        selected.column = column;
-        board.turn = board.turn === "light" ? "dark" : "light";
-        board.enPassantId = movement.enPassant ? selectedId : "";
-        if (selected.type === "rook") {
-          board[selected.color].canKingSideCastle &&=
-            movement.breaksKingSideCastle !== true;
-          board[selected.color].canQueenSideCastle &&=
-            movement.breaksQueenSideCastle !== true;
-        }
-        if (selected.type === "king") {
-          board[selected.color].canKingSideCastle = false;
-          board[selected.color].canQueenSideCastle = false;
-        }
-        movement.captures?.forEach((capture) => {
-          board.tiles[capture.row]![capture.column] = null;
-        });
-        movement.movements?.forEach((movement) => {
-          const extraMovement =
-            board.tiles[movement.from.row]?.[movement.from.column];
-          if (extraMovement) {
-            board.tiles[movement.to.row]![movement.to.column] = extraMovement;
-            board.tiles[movement.from.row]![movement.from.column] = null;
-            extraMovement.row = movement.to.row;
-            extraMovement.column = movement.to.column;
-          }
-        });
+        executeMovement(board, selected, movement);
       }
     }
     const piece = board.tiles[row]?.[column];
     if (piece?.color === board.turn) {
-      const move = piece.move(board);
-      if (move.length) {
+      const movement = piece.movement(board);
+      if (movement.length) {
         board.selectedId = piece.id;
       }
     }
@@ -213,7 +184,7 @@ const drawSelected = () => {
 
 const drawMovement = () => {
   const piece = getPieceById(board, board.selectedId);
-  piece?.move(board).forEach((movement) => {
+  piece?.movement(board).forEach((movement) => {
     context.fillStyle = "rgba(126, 126, 126, .7)";
     context.beginPath();
     context.ellipse(

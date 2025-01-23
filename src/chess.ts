@@ -1,11 +1,13 @@
 import type {
   BoardState,
   ChessColor,
-  Move,
-  MoveFunction,
+  Movement,
+  MovementConfig,
+  MovementFunction,
   Piece,
   PieceType,
 } from "./types";
+import clone from "clone-deep";
 
 export const getPieceById = (board: BoardState, id: string) =>
   board.tiles.flat().find((piece) => piece?.id === id);
@@ -25,7 +27,8 @@ const loadImage = (() => {
 const removeIllegalMoves = (
   piece: Piece,
   board: BoardState,
-  movements: Move[]
+  movements: Movement[],
+  config: MovementConfig | null | undefined
 ) => {
   return movements.filter((movement) => {
     // REMOVE OUT OF BOUNDS
@@ -41,8 +44,18 @@ const removeIllegalMoves = (
     if (board.tiles[movement.row]?.[movement.column]?.color === piece.color) {
       return false;
     }
-
+    if (config?.attacksOnly) {
+      return true;
+    }
     // TODO REMOVE SELF CHECKS
+    const future = executeMovement(clone(board), clone(piece), movement);
+    const king = getCheckedKings({
+      ...future,
+      turn: future.turn === "light" ? "dark" : "light",
+    }).find((king) => king.color === board.turn);
+    if (king) {
+      return false;
+    }
     return true;
   });
 };
@@ -50,18 +63,23 @@ const removeIllegalMoves = (
 const piece = ({
   color,
   type,
-  move,
+  movement,
 }: {
   color: ChessColor;
   type: PieceType;
-  move: MoveFunction;
+  movement: MovementFunction;
 }): Piece => {
   return {
     id: crypto.randomUUID(),
     color,
     image: loadImage(`${color}_${type}.png`),
-    move(board, config) {
-      return removeIllegalMoves(this, board, move.call(this, board, config));
+    movement(board, config) {
+      return removeIllegalMoves(
+        this,
+        board,
+        movement.call(this, board, config),
+        config
+      );
     },
     type,
     column: 0,
@@ -73,8 +91,8 @@ export const pawn = (color: ChessColor) =>
   piece({
     color,
     type: "pawn",
-    move(board, config) {
-      const movement: Move[] = [];
+    movement(board, config) {
+      const movement: Movement[] = [];
       const direction = this.color === "dark" ? 1 : -1;
       const forward = board.tiles[this.row + direction]?.[this.column];
       const forward2 = board.tiles[this.row + 2 * direction]?.[this.column];
@@ -170,7 +188,7 @@ export const rook = (color: ChessColor) =>
   piece({
     color,
     type: "rook",
-    move(board) {
+    movement(board) {
       const breaksQueenSideCastle = this.column === 0 && this.row % 7 === 0;
       const breaksKingSideCastle = this.column === 7 && this.row % 7 === 0;
       return horizontal(board, this, 7).map((movement) => ({
@@ -182,7 +200,7 @@ export const rook = (color: ChessColor) =>
   });
 
 const horizontal = (board: BoardState, piece: Piece, max: number) => {
-  const movement: Move[] = [];
+  const movement: Movement[] = [];
   movement.push(...longMovement(board, piece, 1, 0, max));
   movement.push(...longMovement(board, piece, -1, 0, max));
   movement.push(...longMovement(board, piece, 0, 1, max));
@@ -191,7 +209,7 @@ const horizontal = (board: BoardState, piece: Piece, max: number) => {
 };
 
 const diagonal = (board: BoardState, piece: Piece, max: number) => {
-  const movement: Move[] = [];
+  const movement: Movement[] = [];
   movement.push(...longMovement(board, piece, 1, 1, max));
   movement.push(...longMovement(board, piece, -1, -1, max));
   movement.push(...longMovement(board, piece, 1, -1, max));
@@ -206,7 +224,7 @@ const longMovement = (
   rowMovement: number,
   max: number
 ) => {
-  const movement: Move[] = [];
+  const movement: Movement[] = [];
   let blocker: Piece | null | undefined = null;
   for (let offset = 1; offset <= max && !blocker; offset++) {
     const offsetRow = piece.row + offset * rowMovement;
@@ -225,8 +243,8 @@ export const knight = (color: ChessColor) =>
   piece({
     color,
     type: "knight",
-    move() {
-      const movements: Move[] = [];
+    movement() {
+      const movements: Movement[] = [];
       for (const column of [1, 2]) {
         const row = column === 1 ? 2 : 1;
         movements.push({
@@ -258,7 +276,7 @@ export const bishop = (color: ChessColor) =>
   piece({
     color,
     type: "bishop",
-    move(board) {
+    movement(board) {
       return diagonal(board, this, 7);
     },
   });
@@ -271,7 +289,7 @@ export const getAttacks = (board: BoardState) => {
         !!piece && piece.color !== board.turn
     )
     .flatMap((piece) =>
-      piece.move(board, {
+      piece.movement(board, {
         attacksOnly: true,
       })
     );
@@ -281,8 +299,8 @@ export const king = (color: ChessColor) =>
   piece({
     color,
     type: "king",
-    move(board, config) {
-      const movements: Move[] = [];
+    movement(board, config) {
+      const movements: Movement[] = [];
       if (!config?.attacksOnly) {
         const attacks = getAttacks(board);
         if (board[board.turn].canKingSideCastle) {
@@ -369,7 +387,7 @@ export const queen = (color: ChessColor) =>
   piece({
     color,
     type: "queen",
-    move(board) {
+    movement(board) {
       return [...horizontal(board, this, 7), ...diagonal(board, this, 7)];
     },
   });
@@ -386,6 +404,7 @@ export const getCheckedKings = (board: BoardState) => {
     .filter((piece) =>
       attacks.find(
         (attack) =>
+          attack.piece.color !== piece.color &&
           attack.column === piece.column &&
           attack.row === piece.row &&
           piece.type === "king"
@@ -393,7 +412,44 @@ export const getCheckedKings = (board: BoardState) => {
     );
 };
 
+export const executeMovement = (
+  board: BoardState,
+  piece: Piece,
+  movement: Movement
+): BoardState => {
+  const { row, column } = movement;
+  board.tiles[piece.row]![piece.column] = null;
+  board.tiles[row]![column] = piece;
+  piece.row = row;
+  piece.column = column;
+  board.turn = board.turn === "light" ? "dark" : "light";
+  board.enPassantId = movement.enPassant ? piece.id : "";
+  if (piece.type === "rook") {
+    board[piece.color].canKingSideCastle &&=
+      movement.breaksKingSideCastle !== true;
+    board[piece.color].canQueenSideCastle &&=
+      movement.breaksQueenSideCastle !== true;
+  }
+  if (piece.type === "king") {
+    board[piece.color].canKingSideCastle = false;
+    board[piece.color].canQueenSideCastle = false;
+  }
+  movement.captures?.forEach((capture) => {
+    board.tiles[capture.row]![capture.column] = null;
+  });
+  movement.movements?.forEach((movement) => {
+    const extraMovement =
+      board.tiles[movement.from.row]?.[movement.from.column];
+    if (extraMovement) {
+      board.tiles[movement.to.row]![movement.to.column] = extraMovement;
+      board.tiles[movement.from.row]![movement.from.column] = null;
+      extraMovement.row = movement.to.row;
+      extraMovement.column = movement.to.column;
+    }
+  });
+  return board;
+};
+
 // TODO
-// cant go into check
 // detect end game
 // PAWN PROMOTION

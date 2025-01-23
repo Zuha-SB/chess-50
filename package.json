@@ -9,6 +9,10 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.1.8"
+    "astro": "^5.1.8",
+    "clone-deep": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/clone-deep": "^4.0.4"
   }
 }

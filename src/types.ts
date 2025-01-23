@@ -13,7 +13,7 @@ export interface Cell {
   row: number;
 }
 
-export interface Move {
+export interface Movement {
   piece: Piece;
   column: number;
   row: number;
@@ -27,21 +27,21 @@ export interface Move {
   captures?: Array<Cell>;
 }
 
-export interface MoveConfig {
-  attacksOnly: boolean;
+export interface MovementConfig {
+  attacksOnly?: boolean;
 }
 
-export type MoveFunction = (
+export type MovementFunction = (
   this: Piece,
   state: BoardState,
-  config?: MoveConfig
-) => Move[];
+  config?: MovementConfig
+) => Movement[];
 
 export interface Piece {
   id: string;
   image: HTMLImageElement;
   color: ChessColor;
-  move: MoveFunction;
+  movement: MovementFunction;
   type: PieceType;
   column: number;
   row: number;
