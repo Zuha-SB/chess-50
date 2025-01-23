@@ -1,6 +1,6 @@
 import { bishop, king, knight, pawn, queen, rook } from "../pieces";
 import type { BoardState, ChessColor, Piece } from "../types";
-import { getPiecesWithCoordinates, getPieceWithCoordinates } from "../utility";
+import { getPieceById } from "../utility";
 
 // CONSTANTS
 const DARK = "black";
@@ -42,6 +42,14 @@ const board: BoardState = {
   turn: "light",
   selectedId: "",
   enPassantId: "",
+  light: {
+    canKingSideCastle: true,
+    canQueenSideCastle: true,
+  },
+  dark: {
+    canKingSideCastle: true,
+    canQueenSideCastle: true,
+  },
   tiles: [
     backRow("dark"),
     Array.from({ length: 8 }).map(() => pawn("dark")),
@@ -54,6 +62,15 @@ const board: BoardState = {
   ],
 };
 
+board.tiles.forEach((row, rowIndex) => {
+  row.forEach((piece, columnIndex) => {
+    if (piece) {
+      piece.row = rowIndex;
+      piece.column = columnIndex;
+    }
+  });
+});
+
 canvas.onclick = (event) => {
   const selectedId = board.selectedId;
   board.selectedId = "";
@@ -64,24 +81,36 @@ canvas.onclick = (event) => {
     const column = Math.floor(x / TILE_SIZE);
     const row = Math.floor(y / TILE_SIZE);
     // TODO MOVE
-    const selected = getPieceWithCoordinates(board, selectedId);
+    const selected = getPieceById(board, selectedId);
     if (selected) {
-      const movement = selected.piece
-        .move(board)
+      const movement = selected
+        .move(board, 0)
         .find((move) => move.column === column && move.row === row);
       if (movement) {
         movement.captures?.forEach((capture) => {
           board.tiles[capture.row][capture.column] = null;
         });
         board.tiles[selected.row][selected.column] = null;
-        board.tiles[row][column] = selected.piece;
+        board.tiles[row][column] = selected;
+        selected.row = row;
+        selected.column = column;
         board.turn = board.turn === "light" ? "dark" : "light";
         board.enPassantId = movement.enPassant ? selectedId : "";
+        if (selected.type === "rook") {
+          board[selected.color].canKingSideCastle &&=
+            movement.breaksKingSideCastle !== true;
+          board[selected.color].canQueenSideCastle &&=
+            movement.breaksQueenSideCastle !== true;
+        }
+        if (selected.type === "king") {
+          board[selected.color].canKingSideCastle = false;
+          board[selected.color].canQueenSideCastle = false;
+        }
       }
     }
     const piece = board.tiles[row]?.[column];
     if (piece?.color === board.turn) {
-      const move = piece.move(board);
+      const move = piece.move(board, 0);
       if (move.length) {
         board.selectedId = piece.id;
       }
@@ -152,9 +181,7 @@ const drawPieces = () => {
 };
 
 const drawSelected = () => {
-  const selected = getPiecesWithCoordinates(board).find(
-    ({ piece }) => piece.id === board.selectedId
-  );
+  const selected = getPieceById(board, board.selectedId);
   if (selected) {
     context.fillStyle = "rgba(0, 255, 0, .7)";
     context.fillRect(
@@ -167,8 +194,8 @@ const drawSelected = () => {
 };
 
 const drawMovement = () => {
-  const piece = getPieceWithCoordinates(board, board.selectedId);
-  piece?.piece.move(board).forEach((movement) => {
+  const piece = getPieceById(board, board.selectedId);
+  piece?.move(board, 0).forEach((movement) => {
     context.fillStyle = "rgba(126, 126, 126, .7)";
     context.beginPath();
     context.ellipse(
@@ -190,13 +217,6 @@ const draw = () => {
   drawSelected();
   drawPieces();
   drawMovement();
-  console.log(
-    board.tiles
-      .map((row) =>
-        row.map((column) => (column ? column.type[0] : " ")).join(" ")
-      )
-      .join("\n")
-  );
 };
 
 const drawAfterWaiting = async () => {
