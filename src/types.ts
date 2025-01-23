@@ -1,3 +1,5 @@
+import type { ChessController } from "./chess/chess-controller";
+
 export type ChessColor = "dark" | "light";
 
 export type PieceType =
@@ -33,7 +35,7 @@ export interface MovementConfig {
 
 export type MovementFunction = (
   this: Piece,
-  state: BoardState,
+  controller: ChessController,
   config?: MovementConfig
 ) => Movement[];
 
