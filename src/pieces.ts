@@ -19,6 +19,27 @@ const loadImage = (() => {
   };
 })();
 
+const removeIllegalMoves = (board: BoardState, movements: Move[]) => {
+  return movements.filter((movement) => {
+    // REMOVE OUT OF BOUNDS
+    if (
+      movement.column < 0 ||
+      movement.column >= 8 ||
+      movement.row < 0 ||
+      movement.row >= 8
+    ) {
+      return false;
+    }
+    // REMOVE SELF CAPTURES
+    if (board.tiles[movement.row]?.[movement.column]?.color === board.turn) {
+      return false;
+    }
+
+    // TODO REMOVE SELF CHECKS
+    return true;
+  });
+};
+
 const piece = ({
   color,
   type,
@@ -32,7 +53,9 @@ const piece = ({
     id: crypto.randomUUID(),
     color,
     image: loadImage(`${color}_${type}.png`),
-    move,
+    move(board, config) {
+      return removeIllegalMoves(board, move.call(this, board, config));
+    },
     type,
     column: 0,
     row: 0,
@@ -50,9 +73,8 @@ export const pawn = (color: ChessColor) =>
       const forward2 = board.tiles[this.row + 2 * direction][this.column];
       if (!config?.attacksOnly) {
         // HANDLE FORWARD 2
-        const startingLight = this.color === "light" && this.row === 6;
-        const startingDark = this.color === "dark" && this.row === 1;
-        if ((startingDark || startingLight) && !forward && !forward2) {
+        const isStarting = this.row === 1 || this.row === 6;
+        if (isStarting && !forward && !forward2) {
           movement.push({
             column: this.column,
             row: this.row + direction * 2,
@@ -138,7 +160,7 @@ export const rook = (color: ChessColor) =>
     move(board) {
       const breaksQueenSideCastle = this.column === 0 && this.row % 7 === 0;
       const breaksKingSideCastle = this.column === 7 && this.row % 7 === 0;
-      return horizontal(board, this, 8).map((movement) => ({
+      return horizontal(board, this, 7).map((movement) => ({
         ...movement,
         breaksQueenSideCastle,
         breaksKingSideCastle,
@@ -148,35 +170,19 @@ export const rook = (color: ChessColor) =>
 
 const horizontal = (board: BoardState, piece: Piece, max: number) => {
   const movement: Move[] = [];
-  movement.push(
-    ...longMovement(board, piece.column, piece.row, 1, 0, piece.color, max)
-  );
-  movement.push(
-    ...longMovement(board, piece.column, piece.row, -1, 0, piece.color, max)
-  );
-  movement.push(
-    ...longMovement(board, piece.column, piece.row, 0, 1, piece.color, max)
-  );
-  movement.push(
-    ...longMovement(board, piece.column, piece.row, 0, -1, piece.color, max)
-  );
+  movement.push(...longMovement(board, piece.column, piece.row, 1, 0, max));
+  movement.push(...longMovement(board, piece.column, piece.row, -1, 0, max));
+  movement.push(...longMovement(board, piece.column, piece.row, 0, 1, max));
+  movement.push(...longMovement(board, piece.column, piece.row, 0, -1, max));
   return movement;
 };
 
 const diagonal = (board: BoardState, piece: Piece, max: number) => {
   const movement: Move[] = [];
-  movement.push(
-    ...longMovement(board, piece.column, piece.row, 1, 1, piece.color, max)
-  );
-  movement.push(
-    ...longMovement(board, piece.column, piece.row, -1, -1, piece.color, max)
-  );
-  movement.push(
-    ...longMovement(board, piece.column, piece.row, 1, -1, piece.color, max)
-  );
-  movement.push(
-    ...longMovement(board, piece.column, piece.row, -1, 1, piece.color, max)
-  );
+  movement.push(...longMovement(board, piece.column, piece.row, 1, 1, max));
+  movement.push(...longMovement(board, piece.column, piece.row, -1, -1, max));
+  movement.push(...longMovement(board, piece.column, piece.row, 1, -1, max));
+  movement.push(...longMovement(board, piece.column, piece.row, -1, 1, max));
   return movement;
 };
 
@@ -186,31 +192,18 @@ const longMovement = (
   row: number,
   columnMovement: number,
   rowMovement: number,
-  color: ChessColor,
   max: number
 ) => {
   const movement: Move[] = [];
-  for (let offset = 1; offset < max; offset++) {
+  let blocker: Piece | null = null;
+  for (let offset = 1; offset <= max && !blocker; offset++) {
     const offsetRow = row + offset * rowMovement;
     const offsetColumn = column + offset * columnMovement;
-    if (
-      offsetRow < 0 ||
-      offsetColumn < 0 ||
-      offsetRow >= 8 ||
-      offsetColumn >= 8
-    ) {
-      break;
-    }
-    const blocker = board.tiles[offsetRow][offsetColumn];
-    if (blocker?.color !== color) {
-      movement.push({
-        row: offsetRow,
-        column: offsetColumn,
-      });
-    }
-    if (blocker) {
-      break;
-    }
+    blocker = board.tiles[offsetRow]?.[offsetColumn];
+    movement.push({
+      row: offsetRow,
+      column: offsetColumn,
+    });
   }
   return movement;
 };
@@ -219,7 +212,7 @@ export const knight = (color: ChessColor) =>
   piece({
     color,
     type: "knight",
-    move(board) {
+    move() {
       const movements: Move[] = [];
       for (const column of [1, 2]) {
         const row = column === 1 ? 2 : 1;
@@ -240,14 +233,7 @@ export const knight = (color: ChessColor) =>
           row: this.row - row,
         });
       }
-      return movements.filter(
-        (movement) =>
-          movement.column >= 0 &&
-          movement.column < 8 &&
-          movement.row >= 0 &&
-          movement.row < 8 &&
-          board.tiles[movement.row][movement.column]?.color !== this.color
-      );
+      return movements;
     },
   });
 
@@ -256,7 +242,7 @@ export const bishop = (color: ChessColor) =>
     color,
     type: "bishop",
     move(board) {
-      return diagonal(board, this, 8);
+      return diagonal(board, this, 7);
     },
   });
 
@@ -354,8 +340,8 @@ export const king = (color: ChessColor) =>
       }
       return [
         ...movements,
-        ...horizontal(board, this, 2),
-        ...diagonal(board, this, 2),
+        ...horizontal(board, this, 1),
+        ...diagonal(board, this, 1),
       ];
     },
   });
@@ -365,7 +351,7 @@ export const queen = (color: ChessColor) =>
     color,
     type: "queen",
     move(board) {
-      return [...horizontal(board, this, 8), ...diagonal(board, this, 8)];
+      return [...horizontal(board, this, 7), ...diagonal(board, this, 7)];
     },
   });
 
