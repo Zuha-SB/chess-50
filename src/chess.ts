@@ -103,7 +103,7 @@ export const pawn = (color: ChessColor) =>
       );
       if (!config?.attacksOnly) {
         // HANDLE FORWARD 2
-        const isStarting = !this.moves;
+        const isStarting = this.moves === 0;
         if (isStarting && !forward && !forward2) {
           movement.push({
             column: this.column,
@@ -313,7 +313,7 @@ export const king = (color: ChessColor) =>
           this.row,
           this.column + 3
         );
-        if (!kBishop && !kKnight && kRook?.moves === 0) {
+        if (this.moves === 0 && !kBishop && !kKnight && kRook?.moves === 0) {
           const attack = attacks.find(
             (movement) =>
               (movement.row === this.row && movement.column === this.column) ||
@@ -358,7 +358,13 @@ export const king = (color: ChessColor) =>
           this.row,
           this.column - 4
         );
-        if (!queen && !qBishop && !qKnight && qRook?.moves === 0) {
+        if (
+          this.moves === 0 &&
+          !queen &&
+          !qBishop &&
+          !qKnight &&
+          qRook?.moves === 0
+        ) {
           const attack = attacks.find(
             (movement) =>
               (movement.row === this.row && movement.column === this.column) ||
