@@ -9,9 +9,19 @@ import {
   TILE_SIZE,
   WIDTH,
 } from "../constant";
-import { bishop, getAttacks, king, knight, pawn, queen, rook } from "../pieces";
+import {
+  getPieceById,
+  bishop,
+  getAttacks,
+  king,
+  knight,
+  pawn,
+  queen,
+  rook,
+  filterNull,
+  getCheckedKings,
+} from "../chess";
 import type { BoardState, ChessColor, Piece } from "../types";
-import { getPieceById } from "../utility";
 
 // CANVAS
 const canvas = document.querySelector("canvas")!;
@@ -85,8 +95,8 @@ canvas.onclick = (event) => {
         .move(board)
         .find((move) => move.column === column && move.row === row);
       if (movement) {
-        board.tiles[selected.row][selected.column] = null;
-        board.tiles[row][column] = selected;
+        board.tiles[selected.row]![selected.column] = null;
+        board.tiles[row]![column] = selected;
         selected.row = row;
         selected.column = column;
         board.turn = board.turn === "light" ? "dark" : "light";
@@ -102,14 +112,14 @@ canvas.onclick = (event) => {
           board[selected.color].canQueenSideCastle = false;
         }
         movement.captures?.forEach((capture) => {
-          board.tiles[capture.row][capture.column] = null;
+          board.tiles[capture.row]![capture.column] = null;
         });
         movement.movements?.forEach((movement) => {
           const extraMovement =
-            board.tiles[movement.from.row][movement.from.column];
+            board.tiles[movement.from.row]?.[movement.from.column];
           if (extraMovement) {
-            board.tiles[movement.to.row][movement.to.column] = extraMovement;
-            board.tiles[movement.from.row][movement.from.column] = null;
+            board.tiles[movement.to.row]![movement.to.column] = extraMovement;
+            board.tiles[movement.from.row]![movement.from.column] = null;
             extraMovement.row = movement.to.row;
             extraMovement.column = movement.to.column;
           }
@@ -220,28 +230,65 @@ const drawMovement = () => {
 };
 
 const drawCheck = () => {
-  const attacks = getAttacks(board);
-  const king = board.tiles
-    .flat()
-    .find((piece) => piece?.type === "king" && piece.color === board.turn);
-  if (king) {
-    const attack = attacks.find(
-      (attack) => attack.column === king.column && attack.row === king.row
+  getCheckedKings(board).forEach((king) => {
+    context.fillStyle = "rgba(255, 0, 0, .7)";
+    context.fillRect(
+      NOTATION_SIZE + king.column * TILE_SIZE,
+      NOTATION_SIZE + king.row * TILE_SIZE,
+      TILE_SIZE,
+      TILE_SIZE
     );
-    if (attack) {
-      context.fillStyle = "rgba(255, 0, 0, .7)";
-      context.fillRect(
-        NOTATION_SIZE + king.column * TILE_SIZE,
-        NOTATION_SIZE + king.row * TILE_SIZE,
-        TILE_SIZE,
-        TILE_SIZE
-      );
-    }
-  }
+  });
+};
+
+const ellipse = (...args: Parameters<CanvasRenderingContext2D["ellipse"]>) => {
+  context.beginPath();
+  context.ellipse(...args);
+  context.closePath();
+  context.fill();
+  context.stroke();
 };
 
 const drawTurn = () => {
-  const stroke = board.turn === "light";
+  context.strokeStyle = "black";
+  context.fillStyle = board.turn === "light" ? LIGHT : DARK;
+  const gap = 8 * TILE_SIZE + NOTATION_SIZE;
+  ellipse(
+    NOTATION_SIZE / 2,
+    NOTATION_SIZE / 2,
+    NOTATION_SIZE / 4,
+    NOTATION_SIZE / 4,
+    0,
+    0,
+    2 * Math.PI
+  );
+  ellipse(
+    NOTATION_SIZE / 2 + gap,
+    NOTATION_SIZE / 2,
+    NOTATION_SIZE / 4,
+    NOTATION_SIZE / 4,
+    0,
+    0,
+    2 * Math.PI
+  );
+  ellipse(
+    NOTATION_SIZE / 2,
+    NOTATION_SIZE / 2 + gap,
+    NOTATION_SIZE / 4,
+    NOTATION_SIZE / 4,
+    0,
+    0,
+    2 * Math.PI
+  );
+  ellipse(
+    NOTATION_SIZE / 2 + gap,
+    NOTATION_SIZE / 2 + gap,
+    NOTATION_SIZE / 4,
+    NOTATION_SIZE / 4,
+    0,
+    0,
+    2 * Math.PI
+  );
 };
 
 const draw = () => {
@@ -255,9 +302,7 @@ const draw = () => {
 };
 
 const drawAfterWaiting = async () => {
-  const pieces = board.tiles
-    .flat()
-    .filter((_: Piece | null): _ is Piece => !!_);
+  const pieces = board.tiles.flat().filter(filterNull);
   await Promise.all(
     pieces.map((piece) => {
       if (!piece.image.complete) {
