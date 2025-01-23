@@ -1,19 +1,17 @@
-import { bishop, king, knight, pawn, queen, rook } from "../pieces";
+import {
+  DARK,
+  FILES,
+  HEIGHT,
+  LIGHT,
+  NOTATION_SIZE,
+  PIECE_PADDING,
+  RANKS,
+  TILE_SIZE,
+  WIDTH,
+} from "../constant";
+import { bishop, getAttacks, king, knight, pawn, queen, rook } from "../pieces";
 import type { BoardState, ChessColor, Piece } from "../types";
 import { getPieceById } from "../utility";
-
-// CONSTANTS
-const DARK = "black";
-const LIGHT = "white";
-const TILE_SIZE = 70;
-const NOTATION_SIZE = TILE_SIZE / 2;
-const PIECE_PADDING = TILE_SIZE / 4;
-const WIDTH = TILE_SIZE * 8 + NOTATION_SIZE * 2;
-const HEIGHT = TILE_SIZE * 8 + NOTATION_SIZE * 2;
-// Files: Vertical columns labeled from "a" to "h" from left to right
-const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
-// Ranks: Horizontal rows numbered from "1" to "8" from bottom to top.
-const RANKS = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
 // CANVAS
 const canvas = document.querySelector("canvas")!;
@@ -221,12 +219,39 @@ const drawMovement = () => {
   });
 };
 
+const drawCheck = () => {
+  const attacks = getAttacks(board);
+  const king = board.tiles
+    .flat()
+    .find((piece) => piece?.type === "king" && piece.color === board.turn);
+  if (king) {
+    const attack = attacks.find(
+      (attack) => attack.column === king.column && attack.row === king.row
+    );
+    if (attack) {
+      context.fillStyle = "rgba(255, 0, 0, .7)";
+      context.fillRect(
+        NOTATION_SIZE + king.column * TILE_SIZE,
+        NOTATION_SIZE + king.row * TILE_SIZE,
+        TILE_SIZE,
+        TILE_SIZE
+      );
+    }
+  }
+};
+
+const drawTurn = () => {
+  const stroke = board.turn === "light";
+};
+
 const draw = () => {
   drawNotation();
   drawTiles();
   drawSelected();
+  drawCheck();
   drawPieces();
   drawMovement();
+  drawTurn();
 };
 
 const drawAfterWaiting = async () => {

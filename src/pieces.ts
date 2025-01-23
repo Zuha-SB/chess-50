@@ -260,7 +260,7 @@ export const bishop = (color: ChessColor) =>
     },
   });
 
-const getAttacks = (board: BoardState) => {
+export const getAttacks = (board: BoardState) => {
   return board.tiles
     .flat()
     .filter(
@@ -282,7 +282,6 @@ export const king = (color: ChessColor) =>
       const movements: Move[] = [];
       if (!config?.attacksOnly) {
         const attacks = getAttacks(board);
-        console.log(attacks);
         if (board[board.turn].canKingSideCastle) {
           // look for blockers
           const bishop = board.tiles[this.row][this.column + 1];
@@ -371,5 +370,6 @@ export const queen = (color: ChessColor) =>
   });
 
 // TODO
+// cant go into check
+// detect end game
 // PAWN PROMOTION
-// CHECK / CHECKMATE / STALEMATE
