@@ -12,9 +12,7 @@ import {
 import {
   getPieceById,
   bishop,
-  king,
   knight,
-  pawn,
   queen,
   rook,
   filterNull,
@@ -24,7 +22,6 @@ import {
   getGameState,
   newGame,
 } from "../chess";
-import type { BoardState, ChessColor } from "../types";
 
 // CANVAS
 const canvas = document.querySelector("canvas")!;

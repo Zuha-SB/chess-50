@@ -522,3 +522,7 @@ export const newGame = () => {
   });
   return board;
 };
+
+// TODO
+// MAKE THE GAME OVER IF THERE IS NOT TWO KINGS
+// REFACTOR INTO REUSABLE CODE
