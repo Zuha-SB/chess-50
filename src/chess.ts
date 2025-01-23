@@ -460,6 +460,13 @@ export const getPromotedPawn = (board: BoardState) => {
 };
 
 export const getGameState = (board: BoardState): GameState => {
+  const kings = board.tiles.flat().filter((piece) => piece?.type === "king");
+  if (kings.length === 1) {
+    return kings[0]?.color === "light" ? "light_wins" : "dark_wins";
+  }
+  if (kings.length === 0) {
+    return "stalemate";
+  }
   const king = getCheckedKing(board);
   const movements = board.tiles.flatMap((row) => {
     return row.flatMap((piece) =>
@@ -524,5 +531,4 @@ export const newGame = () => {
 };
 
 // TODO
-// MAKE THE GAME OVER IF THERE IS NOT TWO KINGS
 // REFACTOR INTO REUSABLE CODE
