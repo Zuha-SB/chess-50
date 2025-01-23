@@ -27,17 +27,12 @@ context.scale(devicePixelRatio, devicePixelRatio);
 
 const backRow = (color: ChessColor) => [
   rook(color),
-  null,
-  null,
-  null,
-  // knight(color),
-  // bishop(color),
-  // queen(color),
+  knight(color),
+  bishop(color),
+  queen(color),
   king(color),
-  // bishop(color),
-  // knight(color),
-  null,
-  null,
+  bishop(color),
+  knight(color),
   rook(color),
 ];
 
@@ -57,14 +52,12 @@ const board: BoardState = {
   },
   tiles: [
     backRow("dark"),
-    // Array.from({ length: 8 }).map(() => pawn("dark")),
+    Array.from({ length: 8 }).map(() => pawn("dark")),
     emptyRow(),
     emptyRow(),
     emptyRow(),
     emptyRow(),
-    emptyRow(),
-    // Array.from({ length: 8 }).map(() => pawn("light")),
-    emptyRow(),
+    Array.from({ length: 8 }).map(() => pawn("light")),
     backRow("light"),
   ],
 };

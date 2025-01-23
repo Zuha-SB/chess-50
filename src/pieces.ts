@@ -57,7 +57,6 @@ export const pawn = (color: ChessColor) =>
             column: this.column,
             row: this.row + direction * 2,
             enPassant: true,
-            piece: this,
           });
         }
         // HANDLE FORWARD 1
@@ -65,7 +64,6 @@ export const pawn = (color: ChessColor) =>
           movement.push({
             column: this.column,
             row: this.row + direction,
-            piece: this,
           });
         }
       }
@@ -87,14 +85,12 @@ export const pawn = (color: ChessColor) =>
         movement.push({
           column: this.column - 1,
           row: this.row + direction,
-          piece: this,
         });
       }
       if (leftPawnJustMoved) {
         movement.push({
           column: this.column - 1,
           row: this.row + direction,
-          piece: this,
           captures: [
             {
               column: this.column - 1,
@@ -117,14 +113,12 @@ export const pawn = (color: ChessColor) =>
         movement.push({
           column: this.column + 1,
           row: this.row + direction,
-          piece: this,
         });
       }
       if (rightPawnJustMoved) {
         movement.push({
           column: this.column + 1,
           row: this.row + direction,
-          piece: this,
           captures: [
             {
               row: this.row,
@@ -155,52 +149,16 @@ export const rook = (color: ChessColor) =>
 const horizontal = (board: BoardState, piece: Piece, max: number) => {
   const movement: Move[] = [];
   movement.push(
-    ...longMovement(
-      board,
-      piece.column,
-      piece.row,
-      1,
-      0,
-      piece.color,
-      max,
-      piece
-    )
+    ...longMovement(board, piece.column, piece.row, 1, 0, piece.color, max)
   );
   movement.push(
-    ...longMovement(
-      board,
-      piece.column,
-      piece.row,
-      -1,
-      0,
-      piece.color,
-      max,
-      piece
-    )
+    ...longMovement(board, piece.column, piece.row, -1, 0, piece.color, max)
   );
   movement.push(
-    ...longMovement(
-      board,
-      piece.column,
-      piece.row,
-      0,
-      1,
-      piece.color,
-      max,
-      piece
-    )
+    ...longMovement(board, piece.column, piece.row, 0, 1, piece.color, max)
   );
   movement.push(
-    ...longMovement(
-      board,
-      piece.column,
-      piece.row,
-      0,
-      -1,
-      piece.color,
-      max,
-      piece
-    )
+    ...longMovement(board, piece.column, piece.row, 0, -1, piece.color, max)
   );
   return movement;
 };
@@ -208,52 +166,16 @@ const horizontal = (board: BoardState, piece: Piece, max: number) => {
 const diagonal = (board: BoardState, piece: Piece, max: number) => {
   const movement: Move[] = [];
   movement.push(
-    ...longMovement(
-      board,
-      piece.column,
-      piece.row,
-      1,
-      1,
-      piece.color,
-      max,
-      piece
-    )
+    ...longMovement(board, piece.column, piece.row, 1, 1, piece.color, max)
   );
   movement.push(
-    ...longMovement(
-      board,
-      piece.column,
-      piece.row,
-      -1,
-      -1,
-      piece.color,
-      max,
-      piece
-    )
+    ...longMovement(board, piece.column, piece.row, -1, -1, piece.color, max)
   );
   movement.push(
-    ...longMovement(
-      board,
-      piece.column,
-      piece.row,
-      1,
-      -1,
-      piece.color,
-      max,
-      piece
-    )
+    ...longMovement(board, piece.column, piece.row, 1, -1, piece.color, max)
   );
   movement.push(
-    ...longMovement(
-      board,
-      piece.column,
-      piece.row,
-      -1,
-      1,
-      piece.color,
-      max,
-      piece
-    )
+    ...longMovement(board, piece.column, piece.row, -1, 1, piece.color, max)
   );
   return movement;
 };
@@ -265,8 +187,7 @@ const longMovement = (
   columnMovement: number,
   rowMovement: number,
   color: ChessColor,
-  max: number,
-  piece: Piece
+  max: number
 ) => {
   const movement: Move[] = [];
   for (let offset = 1; offset < max; offset++) {
@@ -285,7 +206,6 @@ const longMovement = (
       movement.push({
         row: offsetRow,
         column: offsetColumn,
-        piece,
       });
     }
     if (blocker) {
@@ -306,22 +226,18 @@ export const knight = (color: ChessColor) =>
         movements.push({
           column: this.column + column,
           row: this.row + row,
-          piece: this,
         });
         movements.push({
           column: this.column - column,
           row: this.row + row,
-          piece: this,
         });
         movements.push({
           column: this.column + column,
           row: this.row - row,
-          piece: this,
         });
         movements.push({
           column: this.column - column,
           row: this.row - row,
-          piece: this,
         });
       }
       return movements.filter(
@@ -385,7 +301,6 @@ export const king = (color: ChessColor) =>
               movements.push({
                 column: this.column + 2,
                 row: this.row,
-                piece: this,
                 movements: [
                   {
                     from: {
@@ -421,7 +336,6 @@ export const king = (color: ChessColor) =>
               movements.push({
                 column: this.column - 2,
                 row: this.row,
-                piece: this,
                 movements: [
                   {
                     from: {

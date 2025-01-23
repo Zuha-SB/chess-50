@@ -14,7 +14,6 @@ export interface Cell {
 }
 
 export interface Move {
-  piece: Piece; // TODO REMOVE
   column: number;
   row: number;
   enPassant?: boolean;
