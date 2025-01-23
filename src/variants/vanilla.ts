@@ -41,7 +41,7 @@ const emptyRow = () => Array.from({ length: 8 }).map(() => null);
 const board: BoardState = {
   turn: "light",
   selectedId: "",
-  lastMovedId: "",
+  enPassantId: "",
   tiles: [
     backRow("dark"),
     Array.from({ length: 8 }).map(() => pawn("dark")),
@@ -76,7 +76,7 @@ canvas.onclick = (event) => {
         board.tiles[selected.row][selected.column] = null;
         board.tiles[row][column] = selected.piece;
         board.turn = board.turn === "light" ? "dark" : "light";
-        board.lastMovedId = selectedId;
+        board.enPassantId = movement.enPassant ? selectedId : "";
       }
     }
     const piece = board.tiles[row]?.[column];

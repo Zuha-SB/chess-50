@@ -56,6 +56,7 @@ export const pawn = (color: ChessColor) =>
           movement.push({
             column: piece.column,
             row: piece.row + direction * 2,
+            enPassant: true,
           });
         }
         // HANDLE 1
@@ -75,7 +76,7 @@ export const pawn = (color: ChessColor) =>
         const leftPawnJustMoved =
           canEnPassant &&
           left?.type === "pawn" &&
-          left.id === board.lastMovedId &&
+          left.id === board.enPassantId &&
           left.color !== this.color;
         if (forwardLeft && forwardLeft.color !== this.color) {
           movement.push({
@@ -101,7 +102,7 @@ export const pawn = (color: ChessColor) =>
         const rightPawnJustMoved =
           canEnPassant &&
           right?.type === "pawn" &&
-          right.id === board.lastMovedId &&
+          right.id === board.enPassantId &&
           right.color !== this.color;
         if (forwardRight && forwardRight.color !== this.color) {
           movement.push({
@@ -317,3 +318,4 @@ export const queen = (color: ChessColor) =>
 // TODO
 // knight
 // CHECK / CHECKMATE / STALEMATE
+// CASTLING

@@ -11,6 +11,7 @@ export type PieceType =
 export interface Move {
   column: number;
   row: number;
+  enPassant?: boolean;
   captures?: Array<{
     column: number;
     row: number;
@@ -29,7 +30,7 @@ export interface Piece {
 
 export interface BoardState {
   tiles: Array<Array<Piece | null>>;
-  lastMovedId: string;
+  enPassantId: string;
   turn: ChessColor;
   selectedId: string;
 }
