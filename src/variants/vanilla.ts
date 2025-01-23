@@ -18,9 +18,11 @@ import {
   queen,
   rook,
   filterNull,
-  getCheckedKings,
+  getCheckedKing,
   executeMovement,
   getPromotedPawn,
+  getGameState,
+  newGame,
 } from "../chess";
 import type { BoardState, ChessColor } from "../types";
 
@@ -34,92 +36,54 @@ canvas.style.width = `${WIDTH}px`;
 canvas.style.height = `${HEIGHT}px`;
 context.scale(devicePixelRatio, devicePixelRatio);
 
-const backRow = (color: ChessColor) => [
-  rook(color),
-  knight(color),
-  bishop(color),
-  queen(color),
-  king(color),
-  bishop(color),
-  knight(color),
-  rook(color),
-];
-
-const emptyRow = () => Array.from({ length: 8 }).map(() => null);
-
-const board: BoardState = {
-  turn: "light",
-  selectedId: "",
-  enPassantId: "",
-  light: {
-    canKingSideCastle: true,
-    canQueenSideCastle: true,
-  },
-  dark: {
-    canKingSideCastle: true,
-    canQueenSideCastle: true,
-  },
-  tiles: [
-    backRow("dark"),
-    Array.from({ length: 8 }).map(() => pawn("dark")),
-    emptyRow(),
-    emptyRow(),
-    emptyRow(),
-    emptyRow(),
-    Array.from({ length: 8 }).map(() => pawn("light")),
-    backRow("light"),
-  ],
-};
-
-board.tiles.forEach((row, rowIndex) => {
-  row.forEach((piece, columnIndex) => {
-    if (piece) {
-      piece.row = rowIndex;
-      piece.column = columnIndex;
-    }
-  });
-});
+let board = newGame();
 
 canvas.onclick = (event) => {
-  const selectedId = board.selectedId;
-  board.selectedId = "";
-  const rect = canvas.getBoundingClientRect();
-  const x = event.pageX - rect.x - NOTATION_SIZE;
-  const y = event.pageY - rect.y - NOTATION_SIZE;
-  if (x >= 0 && y >= 0) {
-    const column = Math.floor(x / TILE_SIZE);
-    const row = Math.floor(y / TILE_SIZE);
-    const pawn = getPromotedPawn(board);
-    if (pawn) {
-      const promotions = getPromotions();
-      const cx = WIDTH / 2 - (promotions.length * TILE_SIZE) / 2;
-      const cy = HEIGHT / 2 - TILE_SIZE / 2;
-      const dx = x - cx;
-      const index = Math.floor(dx / TILE_SIZE);
-      const dy = y - cy;
-      if ((index >= 0 || index < promotions.length) && dy < TILE_SIZE) {
-        const promotion = promotions[index]!;
-        board.tiles[pawn.row]![pawn.column] = promotion;
-        promotion.column = pawn.column;
-        promotion.row = pawn.row;
+  if (getGameState(board) === "active") {
+    const selectedId = board.selectedId;
+    board.selectedId = "";
+    const rect = canvas.getBoundingClientRect();
+    const x = event.pageX - rect.x - NOTATION_SIZE;
+    const y = event.pageY - rect.y - NOTATION_SIZE;
+    if (x >= 0 && y >= 0) {
+      const column = Math.floor(x / TILE_SIZE);
+      const row = Math.floor(y / TILE_SIZE);
+      const pawn = getPromotedPawn(board);
+      if (pawn) {
+        const promotions = getPromotions();
+        const cx = WIDTH / 2 - (promotions.length * TILE_SIZE) / 2;
+        const cy = HEIGHT / 2 - TILE_SIZE / 2;
+        const dx = x - cx;
+        const index = Math.floor(dx / TILE_SIZE);
+        const dy = y - cy;
+        if ((index >= 0 || index < promotions.length) && dy < TILE_SIZE) {
+          const promotion = promotions[index]!;
+          board.tiles[pawn.row]![pawn.column] = promotion;
+          promotion.column = pawn.column;
+          promotion.row = pawn.row;
+        }
+      }
+      const selected = getPieceById(board, selectedId);
+      if (selected) {
+        const movement = selected
+          .movement(board)
+          .find(
+            (movement) => movement.column === column && movement.row === row
+          );
+        if (movement) {
+          executeMovement(board, selected, movement);
+        }
+      }
+      const piece = board.tiles[row]?.[column];
+      if (piece?.color === board.turn) {
+        const movement = piece.movement(board);
+        if (movement.length) {
+          board.selectedId = piece.id;
+        }
       }
     }
-    const selected = getPieceById(board, selectedId);
-    if (selected) {
-      const movement = selected
-        .movement(board)
-        .find((movement) => movement.column === column && movement.row === row);
-      if (movement) {
-        executeMovement(board, selected, movement);
-      }
-    }
-    const piece = board.tiles[row]?.[column];
-    if (piece?.color === board.turn) {
-      const movement = piece.movement(board);
-      if (movement.length) {
-        board.selectedId = piece.id;
-      }
-    }
+  } else {
+    board = newGame();
   }
   draw();
 };
@@ -147,7 +111,7 @@ const drawTiles = () => {
 
 const drawNotation = () => {
   context.fillStyle = DARK;
-  context.font = `${NOTATION_SIZE / 2} sans-serif`;
+  context.font = `${NOTATION_SIZE / 2}px sans-serif`;
   context.textAlign = "center";
   context.textBaseline = "middle";
   FILES.forEach((file, index) => {
@@ -217,7 +181,8 @@ const drawMovement = () => {
 };
 
 const drawCheck = () => {
-  getCheckedKings(board).forEach((king) => {
+  const king = getCheckedKing(board);
+  if (king) {
     context.fillStyle = "rgba(255, 0, 0, .7)";
     context.fillRect(
       NOTATION_SIZE + king.column * TILE_SIZE,
@@ -225,7 +190,7 @@ const drawCheck = () => {
       TILE_SIZE,
       TILE_SIZE
     );
-  });
+  }
 };
 
 const ellipse = (...args: Parameters<CanvasRenderingContext2D["ellipse"]>) => {
@@ -314,6 +279,29 @@ const drawPawnPromotion = () => {
   }
 };
 
+const drawEndGame = () => {
+  const gameState = getGameState(board);
+  context.font = "bold 50px sans-serif";
+  context.fillStyle = "black";
+  context.strokeStyle = "white";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  if (gameState !== "active") {
+    context.fillStyle = "rgba(0, 0, 0, .7)";
+    context.fillRect(0, 0, WIDTH, HEIGHT);
+    if (gameState === "dark_wins") {
+      context.fillText("Black wins", WIDTH / 2, HEIGHT / 2);
+      context.strokeText("Black wins", WIDTH / 2, HEIGHT / 2);
+    } else if (gameState === "light_wins") {
+      context.fillText("White wins", WIDTH / 2, HEIGHT / 2);
+      context.strokeText("White wins", WIDTH / 2, HEIGHT / 2);
+    } else if (gameState === "stalemate") {
+      context.fillText("Stalemate", WIDTH / 2, HEIGHT / 2);
+      context.strokeText("Stalemate", WIDTH / 2, HEIGHT / 2);
+    }
+  }
+};
+
 const draw = () => {
   context.clearRect(0, 0, WIDTH, HEIGHT);
   drawNotation();
@@ -324,6 +312,7 @@ const draw = () => {
   drawMovement();
   drawTurn();
   drawPawnPromotion();
+  drawEndGame();
 };
 
 const drawAfterWaiting = async () => {

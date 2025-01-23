@@ -1,6 +1,7 @@
 import type {
   BoardState,
   ChessColor,
+  GameState,
   Movement,
   MovementConfig,
   MovementFunction,
@@ -49,10 +50,10 @@ const removeIllegalMoves = (
     }
     // TODO REMOVE SELF CHECKS
     const future = executeMovement(clone(board), clone(piece), movement);
-    const king = getCheckedKings({
+    const king = getCheckedKing({
       ...future,
       turn: future.turn === "light" ? "dark" : "light",
-    }).find((king) => king.color === board.turn);
+    });
     if (king) {
       return false;
     }
@@ -395,12 +396,12 @@ export const queen = (color: ChessColor) =>
 export const filterNull = <T>(input: T | null | undefined): input is T =>
   !!input;
 
-export const getCheckedKings = (board: BoardState) => {
+export const getCheckedKing = (board: BoardState) => {
   const attacks = getAttacks(board);
   return board.tiles
     .flat()
     .filter(filterNull)
-    .filter((piece) =>
+    .find((piece) =>
       attacks.find(
         (attack) =>
           attack.piece.color !== piece.color &&
@@ -458,5 +459,66 @@ export const getPromotedPawn = (board: BoardState) => {
     );
 };
 
-// TODO
-// detect end game
+export const getGameState = (board: BoardState): GameState => {
+  const king = getCheckedKing(board);
+  const movements = board.tiles.flatMap((row) => {
+    return row.flatMap((piece) =>
+      piece?.color === board.turn ? piece.movement(board) : []
+    );
+  });
+  if (king && !movements.length) {
+    return board.turn === "dark" ? "light_wins" : "dark_wins";
+  }
+  if (!movements.length) {
+    return "stalemate";
+  }
+  return "active";
+};
+
+const backRow = (color: ChessColor) => [
+  rook(color),
+  knight(color),
+  bishop(color),
+  queen(color),
+  king(color),
+  bishop(color),
+  knight(color),
+  rook(color),
+];
+
+const emptyRow = () => Array.from({ length: 8 }).map(() => null);
+
+export const newGame = () => {
+  const board: BoardState = {
+    turn: "light",
+    selectedId: "",
+    enPassantId: "",
+    light: {
+      canKingSideCastle: true,
+      canQueenSideCastle: true,
+    },
+    dark: {
+      canKingSideCastle: true,
+      canQueenSideCastle: true,
+    },
+    tiles: [
+      backRow("dark"),
+      Array.from({ length: 8 }).map(() => pawn("dark")),
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      Array.from({ length: 8 }).map(() => pawn("light")),
+      backRow("light"),
+    ],
+  };
+  board.tiles.forEach((row, rowIndex) => {
+    row.forEach((piece, columnIndex) => {
+      if (piece) {
+        piece.row = rowIndex;
+        piece.column = columnIndex;
+      }
+    });
+  });
+  return board;
+};

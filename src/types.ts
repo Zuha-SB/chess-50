@@ -61,3 +61,5 @@ export interface BoardState {
     canQueenSideCastle: boolean;
   };
 }
+
+export type GameState = "active" | "light_wins" | "dark_wins" | "stalemate";
