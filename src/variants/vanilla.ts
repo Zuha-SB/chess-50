@@ -27,12 +27,17 @@ context.scale(devicePixelRatio, devicePixelRatio);
 
 const backRow = (color: ChessColor) => [
   rook(color),
-  knight(color),
-  bishop(color),
-  queen(color),
+  null,
+  null,
+  null,
+  // knight(color),
+  // bishop(color),
+  // queen(color),
   king(color),
-  bishop(color),
-  knight(color),
+  // bishop(color),
+  // knight(color),
+  null,
+  null,
   rook(color),
 ];
 
@@ -52,12 +57,14 @@ const board: BoardState = {
   },
   tiles: [
     backRow("dark"),
-    Array.from({ length: 8 }).map(() => pawn("dark")),
+    // Array.from({ length: 8 }).map(() => pawn("dark")),
     emptyRow(),
     emptyRow(),
     emptyRow(),
     emptyRow(),
-    Array.from({ length: 8 }).map(() => pawn("light")),
+    emptyRow(),
+    // Array.from({ length: 8 }).map(() => pawn("light")),
+    emptyRow(),
     backRow("light"),
   ],
 };
@@ -84,12 +91,9 @@ canvas.onclick = (event) => {
     const selected = getPieceById(board, selectedId);
     if (selected) {
       const movement = selected
-        .move(board, 0)
+        .move(board)
         .find((move) => move.column === column && move.row === row);
       if (movement) {
-        movement.captures?.forEach((capture) => {
-          board.tiles[capture.row][capture.column] = null;
-        });
         board.tiles[selected.row][selected.column] = null;
         board.tiles[row][column] = selected;
         selected.row = row;
@@ -106,11 +110,24 @@ canvas.onclick = (event) => {
           board[selected.color].canKingSideCastle = false;
           board[selected.color].canQueenSideCastle = false;
         }
+        movement.captures?.forEach((capture) => {
+          board.tiles[capture.row][capture.column] = null;
+        });
+        movement.movements?.forEach((movement) => {
+          const extraMovement =
+            board.tiles[movement.from.row][movement.from.column];
+          if (extraMovement) {
+            board.tiles[movement.to.row][movement.to.column] = extraMovement;
+            board.tiles[movement.from.row][movement.from.column] = null;
+            extraMovement.row = movement.to.row;
+            extraMovement.column = movement.to.column;
+          }
+        });
       }
     }
     const piece = board.tiles[row]?.[column];
     if (piece?.color === board.turn) {
-      const move = piece.move(board, 0);
+      const move = piece.move(board);
       if (move.length) {
         board.selectedId = piece.id;
       }
@@ -195,7 +212,7 @@ const drawSelected = () => {
 
 const drawMovement = () => {
   const piece = getPieceById(board, board.selectedId);
-  piece?.move(board, 0).forEach((movement) => {
+  piece?.move(board).forEach((movement) => {
     context.fillStyle = "rgba(126, 126, 126, .7)";
     context.beginPath();
     context.ellipse(

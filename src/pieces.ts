@@ -43,27 +43,31 @@ export const pawn = (color: ChessColor) =>
   piece({
     color,
     type: "pawn",
-    move(board) {
+    move(board, config) {
       const movement: Move[] = [];
       const direction = this.color === "dark" ? 1 : -1;
       const forward = board.tiles[this.row + direction][this.column];
       const forward2 = board.tiles[this.row + 2 * direction][this.column];
-      // HANDLE 2
-      const startingLight = this.color === "light" && this.row === 6;
-      const startingDark = this.color === "dark" && this.row === 1;
-      if ((startingDark || startingLight) && !forward && !forward2) {
-        movement.push({
-          column: this.column,
-          row: this.row + direction * 2,
-          enPassant: true,
-        });
-      }
-      // HANDLE 1
-      if (!forward) {
-        movement.push({
-          column: this.column,
-          row: this.row + direction,
-        });
+      if (!config?.attacksOnly) {
+        // HANDLE FORWARD 2
+        const startingLight = this.color === "light" && this.row === 6;
+        const startingDark = this.color === "dark" && this.row === 1;
+        if ((startingDark || startingLight) && !forward && !forward2) {
+          movement.push({
+            column: this.column,
+            row: this.row + direction * 2,
+            enPassant: true,
+            piece: this,
+          });
+        }
+        // HANDLE FORWARD 1
+        if (!forward) {
+          movement.push({
+            column: this.column,
+            row: this.row + direction,
+            piece: this,
+          });
+        }
       }
       const canEnPassant =
         (this.color === "light" && this.row === 3) ||
@@ -76,16 +80,21 @@ export const pawn = (color: ChessColor) =>
         left?.type === "pawn" &&
         left.id === board.enPassantId &&
         left.color !== this.color;
-      if (forwardLeft && forwardLeft.color !== this.color) {
+      if (
+        config?.attacksOnly ||
+        (forwardLeft && forwardLeft.color !== this.color)
+      ) {
         movement.push({
           column: this.column - 1,
           row: this.row + direction,
+          piece: this,
         });
       }
       if (leftPawnJustMoved) {
         movement.push({
           column: this.column - 1,
           row: this.row + direction,
+          piece: this,
           captures: [
             {
               column: this.column - 1,
@@ -101,16 +110,21 @@ export const pawn = (color: ChessColor) =>
         right?.type === "pawn" &&
         right.id === board.enPassantId &&
         right.color !== this.color;
-      if (forwardRight && forwardRight.color !== this.color) {
+      if (
+        config?.attacksOnly ||
+        (forwardRight && forwardRight.color !== this.color)
+      ) {
         movement.push({
           column: this.column + 1,
           row: this.row + direction,
+          piece: this,
         });
       }
       if (rightPawnJustMoved) {
         movement.push({
           column: this.column + 1,
           row: this.row + direction,
+          piece: this,
           captures: [
             {
               row: this.row,
@@ -141,16 +155,52 @@ export const rook = (color: ChessColor) =>
 const horizontal = (board: BoardState, piece: Piece, max: number) => {
   const movement: Move[] = [];
   movement.push(
-    ...longMovement(board, piece.column, piece.row, 1, 0, piece.color, max)
+    ...longMovement(
+      board,
+      piece.column,
+      piece.row,
+      1,
+      0,
+      piece.color,
+      max,
+      piece
+    )
   );
   movement.push(
-    ...longMovement(board, piece.column, piece.row, -1, 0, piece.color, max)
+    ...longMovement(
+      board,
+      piece.column,
+      piece.row,
+      -1,
+      0,
+      piece.color,
+      max,
+      piece
+    )
   );
   movement.push(
-    ...longMovement(board, piece.column, piece.row, 0, 1, piece.color, max)
+    ...longMovement(
+      board,
+      piece.column,
+      piece.row,
+      0,
+      1,
+      piece.color,
+      max,
+      piece
+    )
   );
   movement.push(
-    ...longMovement(board, piece.column, piece.row, 0, -1, piece.color, max)
+    ...longMovement(
+      board,
+      piece.column,
+      piece.row,
+      0,
+      -1,
+      piece.color,
+      max,
+      piece
+    )
   );
   return movement;
 };
@@ -158,16 +208,52 @@ const horizontal = (board: BoardState, piece: Piece, max: number) => {
 const diagonal = (board: BoardState, piece: Piece, max: number) => {
   const movement: Move[] = [];
   movement.push(
-    ...longMovement(board, piece.column, piece.row, 1, 1, piece.color, max)
+    ...longMovement(
+      board,
+      piece.column,
+      piece.row,
+      1,
+      1,
+      piece.color,
+      max,
+      piece
+    )
   );
   movement.push(
-    ...longMovement(board, piece.column, piece.row, -1, -1, piece.color, max)
+    ...longMovement(
+      board,
+      piece.column,
+      piece.row,
+      -1,
+      -1,
+      piece.color,
+      max,
+      piece
+    )
   );
   movement.push(
-    ...longMovement(board, piece.column, piece.row, 1, -1, piece.color, max)
+    ...longMovement(
+      board,
+      piece.column,
+      piece.row,
+      1,
+      -1,
+      piece.color,
+      max,
+      piece
+    )
   );
   movement.push(
-    ...longMovement(board, piece.column, piece.row, -1, 1, piece.color, max)
+    ...longMovement(
+      board,
+      piece.column,
+      piece.row,
+      -1,
+      1,
+      piece.color,
+      max,
+      piece
+    )
   );
   return movement;
 };
@@ -179,7 +265,8 @@ const longMovement = (
   columnMovement: number,
   rowMovement: number,
   color: ChessColor,
-  max: number
+  max: number,
+  piece: Piece
 ) => {
   const movement: Move[] = [];
   for (let offset = 1; offset < max; offset++) {
@@ -198,6 +285,7 @@ const longMovement = (
       movement.push({
         row: offsetRow,
         column: offsetColumn,
+        piece,
       });
     }
     if (blocker) {
@@ -218,18 +306,22 @@ export const knight = (color: ChessColor) =>
         movements.push({
           column: this.column + column,
           row: this.row + row,
+          piece: this,
         });
         movements.push({
           column: this.column - column,
           row: this.row + row,
+          piece: this,
         });
         movements.push({
           column: this.column + column,
           row: this.row - row,
+          piece: this,
         });
         movements.push({
           column: this.column - column,
           row: this.row - row,
+          piece: this,
         });
       }
       return movements.filter(
@@ -255,54 +347,95 @@ export const bishop = (color: ChessColor) =>
 const getAttacks = (board: BoardState) => {
   return board.tiles
     .flat()
-    .filter((_: Piece | null): _ is Piece => !!_)
-    .flatMap((piece) => piece.move(board, 1));
+    .filter(
+      (piece: Piece | null): piece is Piece =>
+        !!piece && piece.color !== board.turn
+    )
+    .flatMap((piece) =>
+      piece.move(board, {
+        attacksOnly: true,
+      })
+    );
 };
 
 export const king = (color: ChessColor) =>
   piece({
     color,
     type: "king",
-    move(board, depth) {
+    move(board, config) {
       const movements: Move[] = [];
-      const attacks = depth
-        ? []
-        : getAttacks({
-            ...board,
-            turn: board.turn === "light" ? "dark" : "light",
-          });
-      if (board[board.turn].canKingSideCastle) {
-        // look for blockers
-        const bishop = board.tiles[this.row][this.column + 1];
-        const knight = board.tiles[this.row][this.column + 2];
-        if (!bishop && !knight) {
-          const attack = attacks.find(
-            (movement) =>
-              movement.row === this.row && movement.column === this.column + 1
-          );
-          if (!attack) {
-            movements.push({
-              column: this.column + 2,
-              row: this.row,
-            });
+      if (!config?.attacksOnly) {
+        const attacks = getAttacks(board);
+        console.log(attacks);
+        if (board[board.turn].canKingSideCastle) {
+          // look for blockers
+          const bishop = board.tiles[this.row][this.column + 1];
+          const knight = board.tiles[this.row][this.column + 2];
+          if (!bishop && !knight) {
+            const attack = attacks.find(
+              (movement) =>
+                (movement.row === this.row &&
+                  movement.column === this.column) ||
+                (movement.row === this.row &&
+                  movement.column === this.column + 1) ||
+                (movement.row === this.row &&
+                  movement.column === this.column + 2)
+            );
+            if (!attack) {
+              movements.push({
+                column: this.column + 2,
+                row: this.row,
+                piece: this,
+                movements: [
+                  {
+                    from: {
+                      row: this.row,
+                      column: 7,
+                    },
+                    to: {
+                      row: this.row,
+                      column: 5,
+                    },
+                  },
+                ],
+              });
+            }
           }
         }
-      }
-      if (board[board.turn].canQueenSideCastle) {
-        // look for blockers
-        const queen = board.tiles[this.row][this.column - 1];
-        const bishop = board.tiles[this.row][this.column - 2];
-        const knight = board.tiles[this.row][this.column - 3];
-        if (!queen && !bishop && !knight) {
-          const attack = attacks.find(
-            (movement) =>
-              movement.row === this.row && movement.column === this.column - 1
-          );
-          if (!attack) {
-            movements.push({
-              column: this.column - 2,
-              row: this.row,
-            });
+        if (board[board.turn].canQueenSideCastle) {
+          // look for blockers
+          const queen = board.tiles[this.row][this.column - 1];
+          const bishop = board.tiles[this.row][this.column - 2];
+          const knight = board.tiles[this.row][this.column - 3];
+          if (!queen && !bishop && !knight) {
+            const attack = attacks.find(
+              (movement) =>
+                (movement.row === this.row &&
+                  movement.column === this.column) ||
+                (movement.row === this.row &&
+                  movement.column === this.column - 1) ||
+                (movement.row === this.row &&
+                  movement.column === this.column - 2)
+            );
+            if (!attack) {
+              movements.push({
+                column: this.column - 2,
+                row: this.row,
+                piece: this,
+                movements: [
+                  {
+                    from: {
+                      row: this.row,
+                      column: 0,
+                    },
+                    to: {
+                      row: this.row,
+                      column: 3,
+                    },
+                  },
+                ],
+              });
+            }
           }
         }
       }
@@ -324,5 +457,5 @@ export const queen = (color: ChessColor) =>
   });
 
 // TODO
-// CASTLING
+// PAWN PROMOTION
 // CHECK / CHECKMATE / STALEMATE

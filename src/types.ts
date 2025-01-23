@@ -8,22 +8,33 @@ export type PieceType =
   | "knight"
   | "pawn";
 
+export interface Cell {
+  column: number;
+  row: number;
+}
+
 export interface Move {
+  piece: Piece; // TODO REMOVE
   column: number;
   row: number;
   enPassant?: boolean;
   breaksKingSideCastle?: boolean;
   breaksQueenSideCastle?: boolean;
-  captures?: Array<{
-    column: number;
-    row: number;
+  movements?: Array<{
+    to: Cell;
+    from: Cell;
   }>;
+  captures?: Array<Cell>;
+}
+
+export interface MoveConfig {
+  attacksOnly: boolean;
 }
 
 export type MoveFunction = (
   this: Piece,
   state: BoardState,
-  depth: number
+  config?: MoveConfig
 ) => Move[];
 
 export interface Piece {
@@ -49,10 +60,4 @@ export interface BoardState {
     canKingSideCastle: boolean;
     canQueenSideCastle: boolean;
   };
-}
-
-export interface PieceWithCoordinates {
-  piece: Piece;
-  column: number;
-  row: number;
 }
