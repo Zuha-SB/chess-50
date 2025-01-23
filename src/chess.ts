@@ -82,6 +82,7 @@ const piece = ({
     type,
     column: 0,
     row: 0,
+    moves: 0,
   };
 };
 
@@ -102,7 +103,7 @@ export const pawn = (color: ChessColor) =>
       );
       if (!config?.attacksOnly) {
         // HANDLE FORWARD 2
-        const isStarting = this.row === 1 || this.row === 6;
+        const isStarting = !this.moves;
         if (isStarting && !forward && !forward2) {
           movement.push({
             column: this.column,
@@ -299,90 +300,90 @@ export const king = (color: ChessColor) =>
       const movements: Movement[] = [];
       if (!config?.attacksOnly) {
         const attacks = controller.getAttacksAgainst(controller.getTurn());
-        if (controller.canKingSideCastle()) {
-          // look for blockers
-          const bishop = controller.getPieceByCoordinates(
-            this.row,
-            this.column + 1
+        // king side castle
+        const kBishop = controller.getPieceByCoordinates(
+          this.row,
+          this.column + 1
+        );
+        const kKnight = controller.getPieceByCoordinates(
+          this.row,
+          this.column + 2
+        );
+        const kRook = controller.getPieceByCoordinates(
+          this.row,
+          this.column + 3
+        );
+        if (!kBishop && !kKnight && kRook?.moves === 0) {
+          const attack = attacks.find(
+            (movement) =>
+              (movement.row === this.row && movement.column === this.column) ||
+              (movement.row === this.row &&
+                movement.column === this.column + 1) ||
+              (movement.row === this.row && movement.column === this.column + 2)
           );
-          const knight = controller.getPieceByCoordinates(
-            this.row,
-            this.column + 2
-          );
-          if (!bishop && !knight) {
-            const attack = attacks.find(
-              (movement) =>
-                (movement.row === this.row &&
-                  movement.column === this.column) ||
-                (movement.row === this.row &&
-                  movement.column === this.column + 1) ||
-                (movement.row === this.row &&
-                  movement.column === this.column + 2)
-            );
-            if (!attack) {
-              movements.push({
-                column: this.column + 2,
-                row: this.row,
-                piece: this,
-                movements: [
-                  {
-                    from: {
-                      row: this.row,
-                      column: 7,
-                    },
-                    to: {
-                      row: this.row,
-                      column: 5,
-                    },
+          if (!attack) {
+            movements.push({
+              column: this.column + 2,
+              row: this.row,
+              piece: this,
+              movements: [
+                {
+                  from: {
+                    row: this.row,
+                    column: 7,
                   },
-                ],
-              });
-            }
+                  to: {
+                    row: this.row,
+                    column: 5,
+                  },
+                },
+              ],
+            });
           }
         }
-        if (controller.canQueenSideCastle()) {
-          // look for blockers
-          const queen = controller.getPieceByCoordinates(
-            this.row,
-            this.column - 1
+        // queen side castling
+        const queen = controller.getPieceByCoordinates(
+          this.row,
+          this.column - 1
+        );
+        const qBishop = controller.getPieceByCoordinates(
+          this.row,
+          this.column - 2
+        );
+        const qKnight = controller.getPieceByCoordinates(
+          this.row,
+          this.column - 3
+        );
+        const qRook = controller.getPieceByCoordinates(
+          this.row,
+          this.column - 4
+        );
+        if (!queen && !qBishop && !qKnight && qRook?.moves === 0) {
+          const attack = attacks.find(
+            (movement) =>
+              (movement.row === this.row && movement.column === this.column) ||
+              (movement.row === this.row &&
+                movement.column === this.column - 1) ||
+              (movement.row === this.row && movement.column === this.column - 2)
           );
-          const bishop = controller.getPieceByCoordinates(
-            this.row,
-            this.column - 2
-          );
-          const knight = controller.getPieceByCoordinates(
-            this.row,
-            this.column - 3
-          );
-          if (!queen && !bishop && !knight) {
-            const attack = attacks.find(
-              (movement) =>
-                (movement.row === this.row &&
-                  movement.column === this.column) ||
-                (movement.row === this.row &&
-                  movement.column === this.column - 1) ||
-                (movement.row === this.row &&
-                  movement.column === this.column - 2)
-            );
-            if (!attack) {
-              movements.push({
-                column: this.column - 2,
-                row: this.row,
-                piece: this,
-                movements: [
-                  {
-                    from: {
-                      row: this.row,
-                      column: 0,
-                    },
-                    to: {
-                      row: this.row,
-                      column: 3,
-                    },
+          if (!attack) {
+            movements.push({
+              column: this.column - 2,
+              row: this.row,
+              piece: this,
+              movements: [
+                {
+                  from: {
+                    row: this.row,
+                    column: 0,
                   },
-                ],
-              });
-            }
+                  to: {
+                    row: this.row,
+                    column: 3,
+                  },
+                },
+              ],
+            });
           }
         }
       }

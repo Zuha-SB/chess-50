@@ -20,8 +20,6 @@ export interface Movement {
   column: number;
   row: number;
   enPassant?: boolean;
-  breaksKingSideCastle?: boolean;
-  breaksQueenSideCastle?: boolean;
   movements?: Array<{
     to: Cell;
     from: Cell;
@@ -47,6 +45,7 @@ export interface Piece {
   type: PieceType;
   column: number;
   row: number;
+  moves: number;
 }
 
 export interface BoardState {
@@ -54,14 +53,6 @@ export interface BoardState {
   enPassantId: string;
   turn: ChessColor;
   selectedId: string;
-  light: {
-    canKingSideCastle: boolean;
-    canQueenSideCastle: boolean;
-  };
-  dark: {
-    canKingSideCastle: boolean;
-    canQueenSideCastle: boolean;
-  };
 }
 
 export type GameState = "active" | "light_wins" | "dark_wins" | "stalemate";

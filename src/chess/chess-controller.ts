@@ -38,14 +38,6 @@ export class ChessController {
       turn: "light",
       selectedId: "",
       enPassantId: "",
-      light: {
-        canKingSideCastle: true,
-        canQueenSideCastle: true,
-      },
-      dark: {
-        canKingSideCastle: true,
-        canQueenSideCastle: true,
-      },
       tiles: [
         backRow("dark"),
         Array.from({ length: 8 }).map(() => pawn("dark")),
@@ -121,6 +113,7 @@ export class ChessController {
       );
   }
   executeMovement(piece: Piece, movement: Movement) {
+    piece.moves++;
     const { row, column } = movement;
     this.board.tiles[piece.row]![piece.column] = null;
     this.board.tiles[row]![column] = piece;
@@ -128,16 +121,6 @@ export class ChessController {
     piece.column = column;
     this.board.turn = this.board.turn === "light" ? "dark" : "light";
     this.board.enPassantId = movement.enPassant ? piece.id : "";
-    if (piece.type === "rook") {
-      this.board[piece.color].canKingSideCastle &&=
-        movement.breaksKingSideCastle !== true;
-      this.board[piece.color].canQueenSideCastle &&=
-        movement.breaksQueenSideCastle !== true;
-    }
-    if (piece.type === "king") {
-      this.board[piece.color].canKingSideCastle = false;
-      this.board[piece.color].canQueenSideCastle = false;
-    }
     movement.captures?.forEach((capture) => {
       this.board.tiles[capture.row]![capture.column] = null;
     });
@@ -169,12 +152,6 @@ export class ChessController {
   }
   getSelectedPiece() {
     return this.getPieceById(this.board.selectedId);
-  }
-  canKingSideCastle() {
-    return this.board[this.board.turn].canKingSideCastle;
-  }
-  canQueenSideCastle() {
-    return this.board[this.board.turn].canQueenSideCastle;
   }
   getEnPassantId() {
     return this.board.enPassantId;
