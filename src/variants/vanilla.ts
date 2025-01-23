@@ -20,6 +20,7 @@ import {
   filterNull,
   getCheckedKings,
   executeMovement,
+  getPromotedPawn,
 } from "../chess";
 import type { BoardState, ChessColor } from "../types";
 
@@ -88,6 +89,21 @@ canvas.onclick = (event) => {
   if (x >= 0 && y >= 0) {
     const column = Math.floor(x / TILE_SIZE);
     const row = Math.floor(y / TILE_SIZE);
+    const pawn = getPromotedPawn(board);
+    if (pawn) {
+      const promotions = getPromotions();
+      const cx = WIDTH / 2 - (promotions.length * TILE_SIZE) / 2;
+      const cy = HEIGHT / 2 - TILE_SIZE / 2;
+      const dx = x - cx;
+      const index = Math.floor(dx / TILE_SIZE);
+      const dy = y - cy;
+      if ((index >= 0 || index < promotions.length) && dy < TILE_SIZE) {
+        const promotion = promotions[index]!;
+        board.tiles[pawn.row]![pawn.column] = promotion;
+        promotion.column = pawn.column;
+        promotion.row = pawn.row;
+      }
+    }
     const selected = getPieceById(board, selectedId);
     if (selected) {
       const movement = selected
@@ -262,7 +278,44 @@ const drawTurn = () => {
   );
 };
 
+const getPromotions = () => {
+  const color = board.turn === "light" ? "dark" : "light";
+  return [knight(color), bishop(color), rook(color), queen(color)];
+};
+
+const drawPawnPromotion = () => {
+  const pawn = getPromotedPawn(board);
+  if (pawn) {
+    context.fillStyle = "rgba(0, 0, 0, .7)";
+    context.fillRect(0, 0, WIDTH, HEIGHT);
+    const promotions = getPromotions();
+    const cx = WIDTH / 2 - (promotions.length * TILE_SIZE) / 2;
+    context.fillStyle = "white";
+    context.fillRect(
+      cx,
+      HEIGHT / 2 - TILE_SIZE / 2,
+      TILE_SIZE * promotions.length,
+      TILE_SIZE
+    );
+    promotions.forEach((promotion, index) => {
+      const image = promotion.image;
+      const space = TILE_SIZE - PIECE_PADDING * 2;
+      const scale = Math.min(space / image.width, space / image.height);
+      const width = image.width * scale;
+      const height = image.height * scale;
+      context.drawImage(
+        image,
+        cx + index * TILE_SIZE + TILE_SIZE / 4,
+        HEIGHT / 2 - height / 2,
+        width,
+        height
+      );
+    });
+  }
+};
+
 const draw = () => {
+  context.clearRect(0, 0, WIDTH, HEIGHT);
   drawNotation();
   drawTiles();
   drawSelected();
@@ -270,6 +323,7 @@ const draw = () => {
   drawPieces();
   drawMovement();
   drawTurn();
+  drawPawnPromotion();
 };
 
 const drawAfterWaiting = async () => {

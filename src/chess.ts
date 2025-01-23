@@ -397,7 +397,6 @@ export const filterNull = <T>(input: T | null | undefined): input is T =>
 
 export const getCheckedKings = (board: BoardState) => {
   const attacks = getAttacks(board);
-  console.log(attacks);
   return board.tiles
     .flat()
     .filter(filterNull)
@@ -450,6 +449,14 @@ export const executeMovement = (
   return board;
 };
 
+export const getPromotedPawn = (board: BoardState) => {
+  return board.tiles
+    .flat()
+    .find(
+      (piece) =>
+        piece && piece.type === "pawn" && (piece.row === 0 || piece.row === 7)
+    );
+};
+
 // TODO
 // detect end game
-// PAWN PROMOTION
