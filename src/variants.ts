@@ -1,3 +1,4 @@
+import cloneDeep from "clone-deep";
 import {
   atomicPiece,
   backRow,
@@ -6,6 +7,8 @@ import {
   hordePawns,
   pawn,
   pawns,
+  raceBack,
+  raceFront,
   randomBackRow,
 } from "./chess";
 import { ChessAI } from "./chess/chess-ai";
@@ -144,6 +147,47 @@ const threeCheck = new ChessController({
   },
 });
 
+const race = new ChessController({
+  name: "Racing Kings",
+  slug: "race",
+  getGameState() {
+    const king = Array.from({ length: 8 })
+      .map((_, column) => this.getPieceByCoordinates(0, column))
+      .find((piece) => piece?.type === "king");
+    if (king) {
+      return king.color === "dark" ? "dark_wins" : "light_wins";
+    }
+    return "active";
+  },
+  newGame() {
+    return [
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      raceFront(),
+      raceBack(),
+    ];
+  },
+  removeIllegalMoves(movement, config) {
+    if (config?.attacksOnly) {
+      return movement;
+    }
+    return movement.filter((movement) => {
+      const future = this.clone();
+      future.executeMovement(cloneDeep(movement));
+      const king =
+        future.getCheckedKing("dark") || future.getCheckedKing("light");
+      if (king) {
+        return false;
+      }
+      return true;
+    });
+  },
+});
+
 export const controllers = [
   vanilla,
   kingOfTheHill,
@@ -153,6 +197,7 @@ export const controllers = [
   doubleMove,
   tripleMove,
   threeCheck,
+  race,
 ];
 
 export const start = () => {

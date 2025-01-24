@@ -49,6 +49,20 @@ export const randomBackRow = (color: ChessColor) => {
   return row;
 };
 
+const race = (piece: (color: ChessColor) => Piece) => [
+  piece("dark"),
+  rook("dark"),
+  bishop("dark"),
+  knight("dark"),
+  knight("light"),
+  bishop("light"),
+  rook("light"),
+  piece("light"),
+];
+
+export const raceFront = () => race(king);
+export const raceBack = () => race(queen);
+
 export const backRow = (color: ChessColor) => [
   rook(color),
   knight(color),
@@ -80,46 +94,6 @@ const loadImage = (() => {
   };
 })();
 
-const removeIllegalMoves = (
-  controller: ChessController,
-  movements: Movement[],
-  config: MovementConfig | null | undefined
-) => {
-  return movements.filter((movement) => {
-    // REMOVE OUT OF BOUNDS
-    movement.destinations = movement.destinations.filter(
-      (destination) =>
-        destination.column >= 0 &&
-        destination.column < 8 &&
-        destination.row >= 0 &&
-        destination.row < 8
-    );
-    // REMOVE SELF CAPTURES
-    movement.destinations = movement.castle
-      ? movement.destinations
-      : movement.destinations.filter(
-          (destination) =>
-            controller.getPieceByCoordinates(
-              destination.row,
-              destination.column
-            )?.color !== destination.piece.color
-        );
-    if (config?.attacksOnly) {
-      return movement.destinations.length;
-    }
-    // REMOVE SELF CHECKS
-    if (controller.getTurns() <= 1) {
-      const future = controller.clone();
-      future.executeMovement(cloneDeep(movement));
-      const king = future.getCheckedKing(controller.getTurn());
-      if (king) {
-        return false;
-      }
-    }
-    return movement.destinations.length;
-  });
-};
-
 const piece = ({
   color,
   type,
@@ -134,8 +108,7 @@ const piece = ({
     color,
     image: loadImage(`${color}_${type}.png`),
     movement(controller, config) {
-      return removeIllegalMoves(
-        controller,
+      return controller.removeIllegalMoves(
         movement.call(this, controller, config),
         config
       );

@@ -7,6 +7,7 @@ import type {
   ChessEventName,
   GameState,
   Movement,
+  MovementConfig,
   Piece,
 } from "../types";
 import cloneDeep from "clone-deep";
@@ -256,5 +257,45 @@ export class ChessController {
       this.board = cloneDeep(history);
       this.historyIndex++;
     }
+  }
+  removeIllegalMoves(
+    movements: Movement[],
+    config: MovementConfig | null | undefined
+  ) {
+    const filtered = movements.filter((movement) => {
+      // REMOVE OUT OF BOUNDS
+      movement.destinations = movement.destinations.filter(
+        (destination) =>
+          destination.column >= 0 &&
+          destination.column < 8 &&
+          destination.row >= 0 &&
+          destination.row < 8
+      );
+      // REMOVE SELF CAPTURES
+      movement.destinations = movement.castle
+        ? movement.destinations
+        : movement.destinations.filter(
+            (destination) =>
+              this.getPieceByCoordinates(destination.row, destination.column)
+                ?.color !== destination.piece.color
+          );
+      if (config?.attacksOnly) {
+        return movement.destinations.length;
+      }
+      // REMOVE SELF CHECKS
+      if (this.board.turns <= 1) {
+        const future = this.clone();
+        future.executeMovement(cloneDeep(movement));
+        const king = future.getCheckedKing(this.board.turn);
+        if (king) {
+          return false;
+        }
+      }
+      return movement.destinations.length;
+    });
+
+    return (
+      this.config.removeIllegalMoves?.call(this, filtered, config) ?? filtered
+    );
   }
 }

@@ -69,6 +69,12 @@ export interface ChessControllerConfig {
   turns?: number;
   name: string;
   slug: string;
+
+  removeIllegalMoves?: (
+    this: ChessController,
+    movements: Movement[],
+    config: MovementConfig | null | undefined
+  ) => Movement[];
   getGameState?: (this: ChessController) => GameState;
   newGame?: (this: ChessController) => Array<Array<Piece | null>>;
   getPromotions?: (this: ChessController, color: ChessColor) => Piece[];
