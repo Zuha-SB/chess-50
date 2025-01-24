@@ -1,5 +1,12 @@
-import { emptyRow, hordePawns, pawn, pawns } from "./chess";
-import { backRow, ChessController } from "./chess/chess-controller";
+import {
+  backRow,
+  emptyRow,
+  hordePawns,
+  pawn,
+  pawns,
+  randomBackRow,
+} from "./chess";
+import { ChessController } from "./chess/chess-controller";
 import { ChessView } from "./chess/chess-view";
 
 const vanilla = new ChessController({
@@ -50,7 +57,25 @@ const horde = new ChessController({
   },
 });
 
-export const controllers = [vanilla, kingOfTheHill, horde];
+const chess960 = new ChessController({
+  name: "960",
+  slug: "960",
+  newGame() {
+    const lightBackrow = randomBackRow("light");
+    return [
+      lightBackrow.map((piece) => piece.withColor("dark")),
+      pawns("dark"),
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      pawns("light"),
+      lightBackrow,
+    ];
+  },
+});
+
+export const controllers = [vanilla, kingOfTheHill, horde, chess960];
 
 export const start = () => {
   const canvas = document.querySelector("canvas")!;

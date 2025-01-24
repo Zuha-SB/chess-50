@@ -1,8 +1,8 @@
 import {
+  backRow,
   bishop,
   emptyRow,
   filterNull,
-  king,
   knight,
   pawns,
   queen,
@@ -17,17 +17,6 @@ import type {
   Piece,
 } from "../types";
 import cloneDeep from "clone-deep";
-
-export const backRow = (color: ChessColor) => [
-  rook(color),
-  knight(color),
-  bishop(color),
-  queen(color),
-  king(color),
-  bishop(color),
-  knight(color),
-  rook(color),
-];
 
 export class ChessController {
   private board: BoardState;

@@ -13,10 +13,7 @@ import type { ChessController } from "./chess-controller";
 
 export class ChessView {
   private context: CanvasRenderingContext2D;
-  constructor(
-    private canvas: HTMLCanvasElement,
-    private controller: ChessController
-  ) {
+  constructor(canvas: HTMLCanvasElement, private controller: ChessController) {
     canvas.onclick = this.onClick.bind(this);
     this.context = canvas.getContext("2d")!;
     canvas.style.border = `1px solid ${DARK}`;

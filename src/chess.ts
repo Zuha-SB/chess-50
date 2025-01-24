@@ -9,6 +9,56 @@ import type {
   PieceType,
 } from "./types";
 
+export const randomBackRow = (color: ChessColor) => {
+  const row: Array<Piece> = [];
+  // king must be between the 2 rooks
+  const taken = new Set<number>([]);
+  const kingPosition = 1 + Math.floor(Math.random() * 6);
+  const leftRookPosition = Math.floor(Math.random() * kingPosition);
+  const rightRookPosition =
+    kingPosition + 1 + Math.floor(Math.random() * (7 - kingPosition));
+  row[kingPosition] = king(color);
+  row[leftRookPosition] = rook(color);
+  row[rightRookPosition] = rook(color);
+  taken.add(kingPosition);
+  taken.add(leftRookPosition);
+  taken.add(rightRookPosition);
+  // bishops must be on different colors
+  const lightBishopPosition = shuffle(
+    Array.from({ length: 4 })
+      .map((_, index) => index * 2)
+      .filter((index) => !taken.has(index))
+  )[0]!;
+  row[lightBishopPosition] = bishop(color);
+  taken.add(lightBishopPosition);
+  const darkBishopPosition = shuffle(
+    Array.from({ length: 4 })
+      .map((_, index) => index * 2 + 1)
+      .filter((index) => !taken.has(index))
+  )[0]!;
+  row[darkBishopPosition] = bishop(color);
+  taken.add(darkBishopPosition);
+  const positions = Array.from({ length: 8 })
+    .map((_, index) => index)
+    .filter((index) => !taken.has(index));
+  const rest = shuffle([queen(color), knight(color), knight(color)]);
+  rest.forEach((piece, index) => {
+    row[positions[index]!] = piece;
+  });
+  return row;
+};
+
+export const backRow = (color: ChessColor) => [
+  rook(color),
+  knight(color),
+  bishop(color),
+  queen(color),
+  king(color),
+  bishop(color),
+  knight(color),
+  rook(color),
+];
+
 export const pawns = (color: ChessColor) =>
   Array.from({ length: 8 }).map(() => pawn(color));
 
@@ -91,6 +141,12 @@ const piece = ({
     column: 0,
     row: 0,
     moves: 0,
+    withColor(color) {
+      const piece = cloneDeep(this);
+      piece.color = color;
+      piece.image = loadImage(`${color}_${this.type}.png`);
+      return piece;
+    },
   };
 };
 
@@ -429,3 +485,13 @@ export const hordePawn = (color: ChessColor) => {
 
 export const filterNull = <T>(input: T | null | undefined): input is T =>
   !!input;
+
+export const shuffle = <T>(list: T[]) => {
+  list.forEach((_, from) => {
+    const to = Math.floor(Math.random() * list.length);
+    const temp = list[from]!;
+    list[from] = list[to]!;
+    list[to] = temp;
+  });
+  return list;
+};

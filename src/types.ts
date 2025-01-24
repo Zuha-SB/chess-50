@@ -46,6 +46,7 @@ export interface Piece {
   column: number;
   row: number;
   moves: number;
+  withColor(color: ChessColor): Piece;
 }
 
 export interface BoardState {
