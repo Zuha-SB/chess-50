@@ -11,6 +11,7 @@ import {
 import { ChessAI } from "./chess/chess-ai";
 import { ChessController } from "./chess/chess-controller";
 import { ChessView } from "./chess/chess-view";
+import { HEIGHT, NOTATION_SIZE, SIDEBAR, WIDTH } from "./constant";
 
 const vanilla = new ChessController({
   name: "Vanilla",
@@ -101,16 +102,46 @@ const atomicChess = new ChessController({
   },
 });
 
-const doubleMoveChess = new ChessController({
+const doubleMove = new ChessController({
   name: "Double Move Chess",
   slug: "double",
   turns: 2,
 });
 
-const tripleMoveChess = new ChessController({
+const tripleMove = new ChessController({
   name: "Triple Move Chess",
   slug: "triple",
   turns: 3,
+});
+
+const threeCheck = new ChessController({
+  name: "Three Check",
+  slug: "three",
+  getGameState() {
+    if (this.getChecks().light >= 3) {
+      return "dark_wins";
+    }
+    if (this.getChecks().dark >= 3) {
+      return "light_wins";
+    }
+    return "active";
+  },
+  onDraw(context) {
+    context.fillStyle = "black";
+    context.textAlign = "center";
+    context.textBaseline = "top";
+    context.fillText(
+      `${this.getChecks().light}`,
+      WIDTH - SIDEBAR / 2,
+      NOTATION_SIZE
+    );
+    context.textBaseline = "bottom";
+    context.fillText(
+      `${this.getChecks().dark}`,
+      WIDTH - SIDEBAR / 2,
+      HEIGHT - NOTATION_SIZE
+    );
+  },
 });
 
 export const controllers = [
@@ -119,8 +150,9 @@ export const controllers = [
   horde,
   chess960,
   atomicChess,
-  doubleMoveChess,
-  tripleMoveChess,
+  doubleMove,
+  tripleMove,
+  threeCheck,
 ];
 
 export const start = () => {

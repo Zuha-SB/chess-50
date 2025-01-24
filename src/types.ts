@@ -56,11 +56,16 @@ export interface BoardState {
   turn: ChessColor;
   selectedId: string;
   turns: number;
+  checks: {
+    light: number;
+    dark: number;
+  };
 }
 
 export type GameState = "active" | "light_wins" | "dark_wins" | "stalemate";
 
 export interface ChessControllerConfig {
+  onDraw?: (this: ChessController, context: CanvasRenderingContext2D) => void;
   turns?: number;
   name: string;
   slug: string;

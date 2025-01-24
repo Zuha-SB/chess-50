@@ -276,6 +276,7 @@ export class ChessView {
     this.drawMovement();
     this.drawTurn();
     this.drawPawnPromotion();
+    this.controller.onDraw(this.context);
     this.drawEndGame();
   }
   async main() {

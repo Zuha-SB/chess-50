@@ -11,6 +11,8 @@ import type {
 } from "../types";
 import cloneDeep from "clone-deep";
 
+const CLONE = "CLONE" as const;
+
 export class ChessController {
   private events: Partial<Record<ChessEventName, ChessEventListener[]>>;
   private board: BoardState;
@@ -24,9 +26,16 @@ export class ChessController {
       tiles: [],
       turn: "light",
       turns: 1,
+      checks: {
+        light: 0,
+        dark: 0,
+      },
     };
     this.historyIndex = -1;
     this.history = [];
+  }
+  onDraw(context: CanvasRenderingContext2D) {
+    this.config.onDraw?.call(this, context);
   }
   addEventListener(name: ChessEventName, listener: ChessEventListener) {
     const events = this.events[name] || [];
@@ -58,6 +67,10 @@ export class ChessController {
       turn: "light",
       selectedId: "",
       enPassantId: "",
+      checks: {
+        light: 0,
+        dark: 0,
+      },
       tiles: this.config?.newGame?.call(this) ?? [
         backRow("dark"),
         pawns("dark"),
@@ -110,6 +123,9 @@ export class ChessController {
     }
     return this.config?.getGameState?.call(this) ?? "active";
   }
+  getChecks() {
+    return this.board.checks;
+  }
   getCheckedKing(color: ChessColor) {
     const attacks = this.getAttacksAgainst(color);
     return this.getPieces().find((piece) =>
@@ -135,10 +151,6 @@ export class ChessController {
   }
   executeMovement(movement: Movement) {
     this.board.turns--;
-    if (this.board.turns === 0) {
-      this.board.turn = this.board.turn === "light" ? "dark" : "light";
-      this.board.turns = this.config.turns || 1;
-    }
     this.board.enPassantId = movement.enPassant || "";
     this.board.selectedId = "";
     movement.destinations.forEach((destination) => {
@@ -152,7 +164,7 @@ export class ChessController {
     movement.captures?.forEach((capture) => {
       this.board.tiles[capture.row]![capture.column] = null;
     });
-    if (this.config.name !== "clone") {
+    if (this.config.name !== CLONE) {
       this.historyIndex++;
       this.history.splice(
         this.historyIndex,
@@ -160,6 +172,16 @@ export class ChessController {
         cloneDeep(this.board)
       );
       this.events.afterMove?.forEach((listener) => listener());
+    }
+    if (this.board.turns === 0) {
+      this.board.turn = this.board.turn === "light" ? "dark" : "light";
+      this.board.turns = this.config.turns || 1;
+      if (this.config.name !== CLONE) {
+        const king = this.getCheckedKing(this.board.turn);
+        if (king) {
+          this.board.checks[this.board.turn]++;
+        }
+      }
     }
   }
   getTurn() {
@@ -206,7 +228,7 @@ export class ChessController {
   clone() {
     const controller = new ChessController({
       ...this.config,
-      name: "clone",
+      name: CLONE,
     });
     controller.board = cloneDeep(this.board);
     return controller;
