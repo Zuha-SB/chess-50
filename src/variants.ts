@@ -110,12 +110,18 @@ const doubleMove = new ChessController({
   name: "Double Move Chess",
   slug: "double",
   turns: 2,
+  getGameState() {
+    return this.detectMissingKings();
+  },
 });
 
 const tripleMove = new ChessController({
   name: "Triple Move Chess",
   slug: "triple",
   turns: 3,
+  getGameState() {
+    return this.detectMissingKings();
+  },
 });
 
 const threeCheck = new ChessController({

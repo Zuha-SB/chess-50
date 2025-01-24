@@ -55,7 +55,7 @@ export class ChessController {
     return this.config.name;
   }
   isClone() {
-    return this.name === CLONE;
+    return this.config.name === CLONE;
   }
   getPieceByCoordinates(rowIndex: number, columnIndex: number) {
     return this.board.tiles[rowIndex]?.[columnIndex];
@@ -135,7 +135,7 @@ export class ChessController {
     return this.board.checks;
   }
   getCheckedKing(color: ChessColor) {
-    if (this.config.hasCheck !== false) {
+    if (this.config.hasCheck !== false && this.board.turns <= 1) {
       const attacks = this.getAttacksAgainst(color);
       return this.getPieces().find((piece) =>
         attacks.find(
