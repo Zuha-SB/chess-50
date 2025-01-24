@@ -111,32 +111,26 @@ export class ChessController {
     return this.getPieces()
       .filter((piece) => piece.color !== color)
       .flatMap((piece) =>
-        piece.movement(this, {
-          attacksOnly: true,
-        })
+        piece
+          .movement(this, {
+            attacksOnly: true,
+          })
+          .flatMap((movement) => movement.destinations)
       );
   }
-  executeMovement(piece: Piece, movement: Movement) {
-    piece.moves++;
-    const { row, column } = movement;
-    this.board.tiles[piece.row]![piece.column] = null;
-    this.board.tiles[row]![column] = piece;
-    piece.row = row;
-    piece.column = column;
+  executeMovement(movement: Movement) {
     this.board.turn = this.board.turn === "light" ? "dark" : "light";
-    this.board.enPassantId = movement.enPassant ? piece.id : "";
+    this.board.enPassantId = movement.enPassant || "";
+    movement.destinations.forEach((destination) => {
+      const { piece, row, column } = destination;
+      piece.moves++;
+      this.board.tiles[piece.row]![piece.column] = null;
+      this.board.tiles[row]![column] = piece;
+      piece.row = row;
+      piece.column = column;
+    });
     movement.captures?.forEach((capture) => {
       this.board.tiles[capture.row]![capture.column] = null;
-    });
-    movement.movements?.forEach((movement) => {
-      const extraMovement =
-        this.board.tiles[movement.from.row]?.[movement.from.column];
-      if (extraMovement) {
-        this.board.tiles[movement.to.row]![movement.to.column] = extraMovement;
-        this.board.tiles[movement.from.row]![movement.from.column] = null;
-        extraMovement.row = movement.to.row;
-        extraMovement.column = movement.to.column;
-      }
     });
   }
   getTurn() {

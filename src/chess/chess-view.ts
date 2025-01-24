@@ -51,7 +51,7 @@ export class ChessView {
               (movement) => movement.column === column && movement.row === row
             );
           if (movement) {
-            this.controller.executeMovement(selected, movement);
+            this.controller.executeMovement(movement);
           }
         }
         const piece = this.controller.getPieceByCoordinates(row, column);

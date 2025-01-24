@@ -16,13 +16,13 @@ export interface Cell {
 }
 
 export interface Movement {
-  piece: Piece;
   column: number;
   row: number;
-  enPassant?: boolean;
-  movements?: Array<{
-    to: Cell;
-    from: Cell;
+  enPassant?: string;
+  destinations: Array<{
+    piece: Piece;
+    column: number;
+    row: number;
   }>;
   captures?: Array<Cell>;
 }

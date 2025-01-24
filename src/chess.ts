@@ -80,39 +80,36 @@ const loadImage = (() => {
 })();
 
 const removeIllegalMoves = (
-  piece: Piece,
   controller: ChessController,
   movements: Movement[],
   config: MovementConfig | null | undefined
 ) => {
   return movements.filter((movement) => {
     // REMOVE OUT OF BOUNDS
-    if (
-      movement.column < 0 ||
-      movement.column >= 8 ||
-      movement.row < 0 ||
-      movement.row >= 8
-    ) {
-      return false;
-    }
+    movement.destinations = movement.destinations.filter(
+      (destination) =>
+        destination.column >= 0 &&
+        destination.column < 8 &&
+        destination.row >= 0 &&
+        destination.row < 8
+    );
     // REMOVE SELF CAPTURES
-    if (
-      controller.getPieceByCoordinates(movement.row, movement.column)?.color ===
-      piece.color
-    ) {
-      return false;
-    }
+    movement.destinations = movement.destinations.filter(
+      (destination) =>
+        controller.getPieceByCoordinates(destination.row, destination.column)
+          ?.color !== destination.piece.color
+    );
     if (config?.attacksOnly) {
-      return true;
+      return movement.destinations.length;
     }
     // REMOVE SELF CHECKS
     const future = controller.clone();
-    future.executeMovement(cloneDeep(piece), movement);
+    future.executeMovement(cloneDeep(movement));
     const king = future.getCheckedKing(controller.getTurn());
     if (king) {
       return false;
     }
-    return true;
+    return movement.destinations.length;
   });
 };
 
@@ -131,7 +128,6 @@ const piece = ({
     image: loadImage(`${color}_${type}.png`),
     movement(controller, config) {
       return removeIllegalMoves(
-        this,
         controller,
         movement.call(this, controller, config),
         config
@@ -173,8 +169,14 @@ export const pawn = (color: ChessColor, canMove2?: (this: Piece) => boolean) =>
           movement.push({
             column: this.column,
             row: this.row + direction * 2,
-            enPassant: true,
-            piece: this,
+            destinations: [
+              {
+                piece: this,
+                column: this.column,
+                row: this.row + direction * 2,
+              },
+            ],
+            enPassant: this.id,
           });
         }
         // HANDLE FORWARD 1
@@ -182,7 +184,13 @@ export const pawn = (color: ChessColor, canMove2?: (this: Piece) => boolean) =>
           movement.push({
             column: this.column,
             row: this.row + direction,
-            piece: this,
+            destinations: [
+              {
+                piece: this,
+                column: this.column,
+                row: this.row + direction,
+              },
+            ],
           });
         }
       }
@@ -207,14 +215,26 @@ export const pawn = (color: ChessColor, canMove2?: (this: Piece) => boolean) =>
         movement.push({
           column: this.column - 1,
           row: this.row + direction,
-          piece: this,
+          destinations: [
+            {
+              column: this.column - 1,
+              row: this.row + direction,
+              piece: this,
+            },
+          ],
         });
       }
       if (leftPawnJustMoved) {
         movement.push({
           column: this.column - 1,
           row: this.row + direction,
-          piece: this,
+          destinations: [
+            {
+              column: this.column - 1,
+              row: this.row + direction,
+              piece: this,
+            },
+          ],
           captures: [
             {
               column: this.column - 1,
@@ -240,14 +260,26 @@ export const pawn = (color: ChessColor, canMove2?: (this: Piece) => boolean) =>
         movement.push({
           column: this.column + 1,
           row: this.row + direction,
-          piece: this,
+          destinations: [
+            {
+              column: this.column + 1,
+              row: this.row + direction,
+              piece: this,
+            },
+          ],
         });
       }
       if (rightPawnJustMoved) {
         movement.push({
           column: this.column + 1,
           row: this.row + direction,
-          piece: this,
+          destinations: [
+            {
+              column: this.column + 1,
+              row: this.row + direction,
+              piece: this,
+            },
+          ],
           captures: [
             {
               row: this.row,
@@ -309,7 +341,13 @@ const longMovement = (
     movement.push({
       row: offsetRow,
       column: offsetColumn,
-      piece,
+      destinations: [
+        {
+          row: offsetRow,
+          column: offsetColumn,
+          piece,
+        },
+      ],
     });
   }
   return movement;
@@ -326,22 +364,46 @@ export const knight = (color: ChessColor) =>
         movements.push({
           column: this.column + column,
           row: this.row + row,
-          piece: this,
+          destinations: [
+            {
+              column: this.column + column,
+              row: this.row + row,
+              piece: this,
+            },
+          ],
         });
         movements.push({
           column: this.column - column,
           row: this.row + row,
-          piece: this,
+          destinations: [
+            {
+              column: this.column - column,
+              row: this.row + row,
+              piece: this,
+            },
+          ],
         });
         movements.push({
           column: this.column + column,
           row: this.row - row,
-          piece: this,
+          destinations: [
+            {
+              column: this.column + column,
+              row: this.row - row,
+              piece: this,
+            },
+          ],
         });
         movements.push({
           column: this.column - column,
           row: this.row - row,
-          piece: this,
+          destinations: [
+            {
+              column: this.column - column,
+              row: this.row - row,
+              piece: this,
+            },
+          ],
         });
       }
       return movements;
@@ -387,17 +449,16 @@ export const king = (color: ChessColor) =>
           movements.push({
             column: 6,
             row: this.row,
-            piece: this,
-            movements: [
+            destinations: [
               {
-                from: {
-                  row: this.row,
-                  column: 7,
-                },
-                to: {
-                  row: this.row,
-                  column: 5,
-                },
+                column: 5,
+                row: this.row,
+                piece: kingRook,
+              },
+              {
+                piece: this,
+                row: this.row,
+                column: 6,
               },
             ],
           });
@@ -424,17 +485,16 @@ export const king = (color: ChessColor) =>
           movements.push({
             column: 2,
             row: this.row,
-            piece: this,
-            movements: [
+            destinations: [
               {
-                from: {
-                  row: this.row,
-                  column: 0,
-                },
-                to: {
-                  row: this.row,
-                  column: 3,
-                },
+                column: 2,
+                row: this.row,
+                piece: this,
+              },
+              {
+                row: this.row,
+                column: 3,
+                piece: queenRook,
               },
             ],
           });
