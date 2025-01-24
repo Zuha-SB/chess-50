@@ -5,6 +5,7 @@ import {
   emptyRow,
   getPromotions,
   hordePawns,
+  king,
   pawn,
   pawns,
   raceBack,
@@ -188,6 +189,43 @@ const race = new ChessController({
   },
 });
 
+const antichess = new ChessController({
+  name: "Antichess",
+  slug: "anti",
+  hasCheck: false,
+  getGameState() {
+    const movements = this.getPieces()
+      .filter((piece) => piece.color === this.getTurn())
+      .flatMap((piece) => piece.movement(this));
+    if (!movements.length) {
+      return this.getTurn() === "light" ? "light_wins" : "dark_wins";
+    }
+    return "active";
+  },
+  removeIllegalMoves(movements, config) {
+    if (config?.attacksOnly) {
+      return movements;
+    }
+    const attacks = this.getAttacksAgainst(
+      this.getTurn() === "light" ? "dark" : "light"
+    );
+    const hasAttack = attacks.find((cell) =>
+      this.getPieceByCoordinates(cell.row, cell.column)
+    );
+    if (hasAttack) {
+      return movements.filter((movement) =>
+        movement.destinations.find((destination) =>
+          this.getPieceByCoordinates(destination.row, destination.column)
+        )
+      );
+    }
+    return movements;
+  },
+  getPromotions(color) {
+    return getPromotions(color).concat(king(color));
+  },
+});
+
 export const controllers = [
   vanilla,
   kingOfTheHill,
@@ -198,6 +236,7 @@ export const controllers = [
   tripleMove,
   threeCheck,
   race,
+  antichess,
 ];
 
 export const start = () => {

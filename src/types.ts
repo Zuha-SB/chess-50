@@ -69,7 +69,7 @@ export interface ChessControllerConfig {
   turns?: number;
   name: string;
   slug: string;
-
+  hasCheck?: boolean;
   removeIllegalMoves?: (
     this: ChessController,
     movements: Movement[],

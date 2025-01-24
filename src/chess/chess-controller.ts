@@ -54,6 +54,9 @@ export class ChessController {
   getName() {
     return this.config.name;
   }
+  isClone() {
+    return this.name === CLONE;
+  }
   getPieceByCoordinates(rowIndex: number, columnIndex: number) {
     return this.board.tiles[rowIndex]?.[columnIndex];
   }
@@ -108,7 +111,10 @@ export class ChessController {
     );
   }
   getGameState(): GameState {
-    const king = this.getCheckedKing(this.board.turn);
+    const state = this.config?.getGameState?.call(this) ?? "active";
+    if (state !== "active") {
+      return state;
+    }
     const pieces = this.getPieces().filter(
       (piece) => piece.color === this.board.turn
     );
@@ -116,28 +122,32 @@ export class ChessController {
       return this.board.turn === "dark" ? "light_wins" : "dark_wins";
     }
     const movements = pieces.flatMap((piece) => piece.movement(this));
-    if (king && !movements.length) {
-      return this.board.turn === "dark" ? "light_wins" : "dark_wins";
-    }
     if (!movements.length) {
+      const king = this.getCheckedKing(this.board.turn);
+      if (king) {
+        return this.board.turn === "dark" ? "light_wins" : "dark_wins";
+      }
       return "stalemate";
     }
-    return this.config?.getGameState?.call(this) ?? "active";
+    return "active";
   }
   getChecks() {
     return this.board.checks;
   }
   getCheckedKing(color: ChessColor) {
-    const attacks = this.getAttacksAgainst(color);
-    return this.getPieces().find((piece) =>
-      attacks.find(
-        (attack) =>
-          attack.piece.color !== piece.color &&
-          attack.column === piece.column &&
-          attack.row === piece.row &&
-          piece.type === "king"
-      )
-    );
+    if (this.config.hasCheck !== false) {
+      const attacks = this.getAttacksAgainst(color);
+      return this.getPieces().find((piece) =>
+        attacks.find(
+          (attack) =>
+            attack.piece.color !== piece.color &&
+            attack.column === piece.column &&
+            attack.row === piece.row &&
+            piece.type === "king"
+        )
+      );
+    }
+    return null;
   }
   getAttacksAgainst(color: ChessColor) {
     return this.getPieces()
