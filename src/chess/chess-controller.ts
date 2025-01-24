@@ -182,7 +182,6 @@ export class ChessController {
         this.history.length,
         cloneDeep(this.board)
       );
-      this.events.afterMove?.forEach((listener) => listener());
     }
     if (this.board.turns === 0) {
       this.board.turn = this.board.turn === "light" ? "dark" : "light";
@@ -194,6 +193,7 @@ export class ChessController {
         }
       }
     }
+    this.events.afterMove?.forEach((listener) => listener());
   }
   getTurn() {
     return this.board.turn;
