@@ -4,7 +4,6 @@ import type {
   Cell,
   ChessColor,
   Movement,
-  MovementConfig,
   MovementFunction,
   Piece,
   PieceType,
@@ -405,7 +404,7 @@ export const king = (color: ChessColor) =>
     type: "king",
     movement(controller, config) {
       const movements: Movement[] = [];
-      if (!config?.attacksOnly && this.moves === 0) {
+      if (!config?.attacksOnly && this.moves === 0 && this.row % 7 === 0) {
         const attacks = controller.getAttacksAgainst(controller.getTurn());
         // king side castle
         let kingRook;
@@ -425,6 +424,7 @@ export const king = (color: ChessColor) =>
           }
         }
         if (kingRook) {
+          // TODO WE NEED TO CHECK IF THERE ARE ATTACKS ON THESE SQUARES
           const kingBlockers = [
             controller.getPieceByCoordinates(this.row, 5),
             controller.getPieceByCoordinates(this.row, 6),
@@ -469,6 +469,7 @@ export const king = (color: ChessColor) =>
           }
         }
         if (queenRook) {
+          // TODO WE NEED TO CHECK IF THERE ARE ATTACKS ON THESE SQUARES
           const queenBlockers = [
             controller.getPieceByCoordinates(this.row, 2),
             controller.getPieceByCoordinates(this.row, 3),
