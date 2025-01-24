@@ -2,6 +2,7 @@ import { bishop, filterNull, king, knight, pawn, queen, rook } from "../chess";
 import type {
   BoardState,
   ChessColor,
+  ChessControllerConfig,
   GameState,
   Movement,
   Piece,
@@ -23,7 +24,7 @@ const emptyRow = () => Array.from({ length: 8 }).map(() => null);
 
 export class ChessController {
   private board: BoardState;
-  constructor() {
+  constructor(private config?: ChessControllerConfig) {
     this.board = this.newGame();
   }
   getPieceByCoordinates(rowIndex: number, columnIndex: number) {
@@ -89,7 +90,7 @@ export class ChessController {
     if (!movements.length) {
       return "stalemate";
     }
-    return "active";
+    return this.config?.getGameState.call(this) ?? "active";
   }
   getCheckedKing(color: ChessColor) {
     const attacks = this.getAttacksAgainst(color);

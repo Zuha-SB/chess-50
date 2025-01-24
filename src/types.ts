@@ -56,3 +56,7 @@ export interface BoardState {
 }
 
 export type GameState = "active" | "light_wins" | "dark_wins" | "stalemate";
+
+export interface ChessControllerConfig {
+  getGameState(this: ChessController): GameState;
+}
