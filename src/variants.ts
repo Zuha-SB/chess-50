@@ -199,6 +199,7 @@ const antichess = new ChessController({
   name: "Antichess",
   slug: "anti",
   hasCheck: false,
+  // TODO DISABLE CASTLING
   getGameState() {
     const movements = this.getPieces()
       .filter((piece) => piece.color === this.getTurn())
