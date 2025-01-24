@@ -1,4 +1,13 @@
-import { bishop, filterNull, king, knight, pawn, queen, rook } from "../chess";
+import {
+  bishop,
+  emptyRow,
+  filterNull,
+  king,
+  knight,
+  pawns,
+  queen,
+  rook,
+} from "../chess";
 import type {
   BoardState,
   ChessColor,
@@ -20,24 +29,33 @@ export const backRow = (color: ChessColor) => [
   rook(color),
 ];
 
-export const pawns = (color: ChessColor) =>
-  Array.from({ length: 8 }).map(() => pawn(color));
-
-export const emptyRow = () => Array.from({ length: 8 }).map(() => null);
-
 export class ChessController {
   private board: BoardState;
-  constructor(private config?: ChessControllerConfig) {
-    this.board = this.newGame();
+  constructor(private config: ChessControllerConfig) {
+    this.board = {
+      enPassantId: "",
+      selectedId: "",
+      tiles: [],
+      turn: "light",
+    };
+  }
+  getSlug() {
+    return this.config.slug;
+  }
+  getName() {
+    return this.config.name;
   }
   getPieceByCoordinates(rowIndex: number, columnIndex: number) {
     return this.board.tiles[rowIndex]?.[columnIndex];
   }
-  getPromotions() {
-    const color = this.board.turn === "light" ? "dark" : "light";
+  getPromotions(
+    color: ChessColor = this.board.turn === "light" ? "dark" : "light"
+  ) {
     return [knight(color), bishop(color), rook(color), queen(color)];
   }
   newGame() {
+    this.getPromotions("light");
+    this.getPromotions("dark");
     const board: BoardState = {
       turn: "light",
       selectedId: "",
@@ -171,7 +189,7 @@ export class ChessController {
     }
   }
   clone() {
-    const controller = new ChessController();
+    const controller = new ChessController(this.config);
     controller.board = cloneDeep(this.board);
     return controller;
   }

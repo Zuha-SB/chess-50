@@ -58,6 +58,8 @@ export interface BoardState {
 export type GameState = "active" | "light_wins" | "dark_wins" | "stalemate";
 
 export interface ChessControllerConfig {
+  name: string;
+  slug: string;
   getGameState?: (this: ChessController) => GameState;
   newGame?: (this: ChessController) => Array<Array<Piece | null>>;
 }

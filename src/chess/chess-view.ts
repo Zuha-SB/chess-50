@@ -28,9 +28,8 @@ export class ChessView {
   }
   private onClick(event: MouseEvent) {
     if (this.controller.getGameState() === "active") {
-      const rect = this.canvas.getBoundingClientRect();
-      const x = event.pageX - rect.x - NOTATION_SIZE;
-      const y = event.pageY - rect.y - NOTATION_SIZE;
+      const x = event.offsetX - NOTATION_SIZE;
+      const y = event.offsetY - NOTATION_SIZE;
       if (x >= 0 && y >= 0) {
         const column = Math.floor(x / TILE_SIZE);
         const row = Math.floor(y / TILE_SIZE);

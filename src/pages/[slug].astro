@@ -1,0 +1,30 @@
+---
+import type { GetStaticPaths } from "astro";
+import { controllers } from "../variants";
+export const getStaticPaths = (() => {
+  return controllers.map((controller) => ({
+    params: {
+      slug: controller.getSlug(),
+    },
+    props: {
+      name: controller.getName(),
+    },
+  }));
+}) satisfies GetStaticPaths;
+const { slug } = Astro.params;
+const { name } = Astro.props;
+---
+
+<!doctype html>
+<html>
+  <head></head>
+  <body>
+    <a href="/">&lt; Back</a>
+    <h1>{name}</h1>
+    <canvas data-slug={slug}></canvas>
+    <script>
+      import { start } from "../variants";
+      start();
+    </script>
+  </body>
+</html>

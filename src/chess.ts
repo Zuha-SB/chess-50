@@ -9,6 +9,14 @@ import type {
   PieceType,
 } from "./types";
 
+export const pawns = (color: ChessColor) =>
+  Array.from({ length: 8 }).map(() => pawn(color));
+
+export const hordePawns = (color: ChessColor) =>
+  Array.from({ length: 8 }).map(() => hordePawn(color));
+
+export const emptyRow = () => Array.from({ length: 8 }).map(() => null);
+
 const loadImage = (() => {
   const cache: Record<string, HTMLImageElement> = {};
   return (src: string) => {
@@ -86,7 +94,7 @@ const piece = ({
   };
 };
 
-export const pawn = (color: ChessColor) =>
+export const pawn = (color: ChessColor, canMove2?: (this: Piece) => boolean) =>
   piece({
     color,
     type: "pawn",
@@ -103,8 +111,8 @@ export const pawn = (color: ChessColor) =>
       );
       if (!config?.attacksOnly) {
         // HANDLE FORWARD 2
-        const isStarting = this.moves === 0;
-        if (isStarting && !forward && !forward2) {
+        const canMove2Eval = canMove2?.call(this) || this.row % 6 < 2;
+        if (canMove2Eval && !forward && !forward2) {
           movement.push({
             column: this.column,
             row: this.row + direction * 2,
@@ -412,6 +420,12 @@ export const queen = (color: ChessColor) =>
       ];
     },
   });
+
+export const hordePawn = (color: ChessColor) => {
+  return pawn(color, function () {
+    return this.moves <= 1;
+  });
+};
 
 export const filterNull = <T>(input: T | null | undefined): input is T =>
   !!input;

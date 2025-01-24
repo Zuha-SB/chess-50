@@ -1,5 +1,5 @@
 ---
-
+import { controllers } from "../variants";
 ---
 
 <!doctype html>
@@ -7,9 +7,13 @@
   <head></head>
   <body>
     <ol>
-      <li><a href="/vanilla">Vanilla</a></li>
-      <li><a href="/koth">King of the Hill</a></li>
-      <li><a href="/horde">Horde</a></li>
+      {
+        controllers.map((controller) => (
+          <li>
+            <a href={`/${controller.getSlug()}`}>{controller.getName()}</a>
+          </li>
+        ))
+      }
 
       <!-- Change the win condition -->
       <li><a href="/">Racing Kings</a></li>
