@@ -32,7 +32,7 @@ export class ChessView {
         const row = Math.floor(y / TILE_SIZE);
         const pawn = this.controller.getPromotedPawn();
         if (pawn) {
-          const promotions = this.controller.getPromotions();
+          const promotions = this.controller.getPromotions(pawn.color);
           const cx = WIDTH / 2 - (promotions.length * TILE_SIZE) / 2;
           const cy = HEIGHT / 2 - TILE_SIZE / 2;
           const dx = x - cx;
@@ -41,6 +41,7 @@ export class ChessView {
           const promotion = promotions[index];
           if (promotion && dy < TILE_SIZE) {
             this.controller.promotePawn(pawn, promotion);
+            return this.draw();
           }
         }
         const selected = this.controller.getSelectedPiece();
@@ -52,6 +53,7 @@ export class ChessView {
             );
           if (movement) {
             this.controller.executeMovement(movement);
+            return this.draw();
           }
         }
         const piece = this.controller.getPieceByCoordinates(row, column);
@@ -217,7 +219,7 @@ export class ChessView {
     if (pawn) {
       this.context.fillStyle = "rgba(0, 0, 0, .7)";
       this.context.fillRect(0, 0, WIDTH, HEIGHT);
-      const promotions = this.controller.getPromotions();
+      const promotions = this.controller.getPromotions(pawn.color);
       const cx = WIDTH / 2 - (promotions.length * TILE_SIZE) / 2;
       this.context.fillStyle = "white";
       this.context.fillRect(
@@ -264,7 +266,7 @@ export class ChessView {
       }
     }
   }
-  private draw() {
+  draw() {
     this.context.clearRect(0, 0, WIDTH, HEIGHT);
     this.drawNotation();
     this.drawTiles();
@@ -277,9 +279,8 @@ export class ChessView {
     this.drawEndGame();
   }
   async main() {
+    this.controller.newGame();
     await this.controller.waitForReady();
     this.draw();
   }
 }
-
-// TODO: DISABLE CASTLING AFTER ROOK CAPTURE

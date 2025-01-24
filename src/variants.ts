@@ -6,6 +6,7 @@ import {
   pawns,
   randomBackRow,
 } from "./chess";
+import { ChessAI } from "./chess/chess-ai";
 import { ChessController } from "./chess/chess-controller";
 import { ChessView } from "./chess/chess-view";
 
@@ -78,14 +79,21 @@ const chess960 = new ChessController({
 export const controllers = [vanilla, kingOfTheHill, horde, chess960];
 
 export const start = () => {
+  const button = document.querySelector("button")!;
   const canvas = document.querySelector("canvas")!;
   const slug = canvas.dataset.slug;
   const controller = controllers.find(
     (controller) => slug === controller.getSlug()
   );
   if (controller) {
-    controller.newGame();
     const view = new ChessView(canvas, controller);
     view.main();
+    controller.addEventListener("afterMove", () => {
+      view.draw();
+    });
+    const ai = new ChessAI(controller);
+    button.onclick = () => {
+      ai.start();
+    };
   }
 };

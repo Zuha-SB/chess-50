@@ -65,3 +65,7 @@ export interface ChessControllerConfig {
   getGameState?: (this: ChessController) => GameState;
   newGame?: (this: ChessController) => Array<Array<Piece | null>>;
 }
+
+export type ChessEventListener = () => void;
+
+export type ChessEventName = "afterMove";

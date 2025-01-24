@@ -21,7 +21,12 @@ const { name } = Astro.props;
   <body>
     <a href="/">&lt; Back</a>
     <h1>{name}</h1>
-    <canvas data-slug={slug}></canvas>
+    <div>
+      <button>Play with Bot</button>
+    </div>
+    <div>
+      <canvas data-slug={slug}></canvas>
+    </div>
     <script>
       import { start } from "../variants";
       start();

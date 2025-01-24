@@ -12,6 +12,8 @@ import type {
   BoardState,
   ChessColor,
   ChessControllerConfig,
+  ChessEventListener,
+  ChessEventName,
   GameState,
   Movement,
   Piece,
@@ -19,14 +21,26 @@ import type {
 import cloneDeep from "clone-deep";
 
 export class ChessController {
+  private events: Partial<Record<ChessEventName, ChessEventListener[]>>;
   private board: BoardState;
   constructor(private config: ChessControllerConfig) {
+    this.events = {};
     this.board = {
       enPassantId: "",
       selectedId: "",
       tiles: [],
       turn: "light",
     };
+  }
+  addEventListener(name: ChessEventName, listener: ChessEventListener) {
+    const events = this.events[name] || [];
+    events.push(listener);
+    this.events[name] = events;
+  }
+  removeEventListener(name: ChessEventName, listener: ChessEventListener) {
+    const events = this.events[name] || [];
+    const index = events.indexOf(listener);
+    events.splice(index, 1);
   }
   getSlug() {
     return this.config.slug;
@@ -37,9 +51,7 @@ export class ChessController {
   getPieceByCoordinates(rowIndex: number, columnIndex: number) {
     return this.board.tiles[rowIndex]?.[columnIndex];
   }
-  getPromotions(
-    color: ChessColor = this.board.turn === "light" ? "dark" : "light"
-  ) {
+  getPromotions(color: ChessColor) {
     return [knight(color), bishop(color), rook(color), queen(color)];
   }
   newGame() {
@@ -121,6 +133,7 @@ export class ChessController {
   executeMovement(movement: Movement) {
     this.board.turn = this.board.turn === "light" ? "dark" : "light";
     this.board.enPassantId = movement.enPassant || "";
+    this.board.selectedId = "";
     movement.destinations.forEach((destination) => {
       const { piece, row, column } = destination;
       piece.moves++;
@@ -132,6 +145,7 @@ export class ChessController {
     movement.captures?.forEach((capture) => {
       this.board.tiles[capture.row]![capture.column] = null;
     });
+    this.events.afterMove?.forEach((listener) => listener());
   }
   getTurn() {
     return this.board.turn;
