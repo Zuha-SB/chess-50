@@ -79,7 +79,9 @@ const chess960 = new ChessController({
 export const controllers = [vanilla, kingOfTheHill, horde, chess960];
 
 export const start = () => {
-  const button = document.querySelector("button")!;
+  const aiBtn = document.querySelector<HTMLButtonElement>("#aiBtn")!;
+  const undoBtn = document.querySelector<HTMLButtonElement>("#undoBtn")!;
+  const redoBtn = document.querySelector<HTMLButtonElement>("#redoBtn")!;
   const canvas = document.querySelector("canvas")!;
   const slug = canvas.dataset.slug;
   const controller = controllers.find(
@@ -92,8 +94,16 @@ export const start = () => {
       view.draw();
     });
     const ai = new ChessAI(controller);
-    button.onclick = () => {
+    aiBtn.onclick = () => {
       ai.start();
+    };
+    undoBtn.onclick = () => {
+      controller.undo();
+      view.draw();
+    };
+    redoBtn.onclick = () => {
+      controller.redo();
+      view.draw();
     };
   }
 };

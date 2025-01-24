@@ -23,6 +23,8 @@ import cloneDeep from "clone-deep";
 export class ChessController {
   private events: Partial<Record<ChessEventName, ChessEventListener[]>>;
   private board: BoardState;
+  private history: Array<BoardState>;
+  private historyIndex: number;
   constructor(private config: ChessControllerConfig) {
     this.events = {};
     this.board = {
@@ -31,6 +33,8 @@ export class ChessController {
       tiles: [],
       turn: "light",
     };
+    this.historyIndex = -1;
+    this.history = [];
   }
   addEventListener(name: ChessEventName, listener: ChessEventListener) {
     const events = this.events[name] || [];
@@ -81,6 +85,8 @@ export class ChessController {
       });
     });
     this.board = board;
+    this.historyIndex = 0;
+    this.history = [cloneDeep(this.board)];
     return board;
   }
   async waitForReady() {
@@ -145,7 +151,15 @@ export class ChessController {
     movement.captures?.forEach((capture) => {
       this.board.tiles[capture.row]![capture.column] = null;
     });
-    this.events.afterMove?.forEach((listener) => listener());
+    if (this.config.name !== "clone") {
+      this.historyIndex++;
+      this.history.splice(
+        this.historyIndex,
+        this.history.length,
+        cloneDeep(this.board)
+      );
+      this.events.afterMove?.forEach((listener) => listener());
+    }
   }
   getTurn() {
     return this.board.turn;
@@ -186,7 +200,10 @@ export class ChessController {
     }
   }
   clone() {
-    const controller = new ChessController(this.config);
+    const controller = new ChessController({
+      ...this.config,
+      name: "clone",
+    });
     controller.board = cloneDeep(this.board);
     return controller;
   }
@@ -198,6 +215,20 @@ export class ChessController {
     }
     if (kings.length === 0) {
       return "stalemate";
+    }
+  }
+  undo() {
+    const history = this.history[this.historyIndex - 1];
+    if (history) {
+      this.board = cloneDeep(history);
+      this.historyIndex--;
+    }
+  }
+  redo() {
+    const history = this.history[this.historyIndex + 1];
+    if (history) {
+      this.board = cloneDeep(history);
+      this.historyIndex++;
     }
   }
 }

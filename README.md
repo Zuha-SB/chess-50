@@ -53,6 +53,4 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 # TODO
 
-- Bug fixes for castling
-- Undo
 - Tests
