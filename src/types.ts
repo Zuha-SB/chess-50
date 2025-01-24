@@ -64,6 +64,7 @@ export interface ChessControllerConfig {
   slug: string;
   getGameState?: (this: ChessController) => GameState;
   newGame?: (this: ChessController) => Array<Array<Piece | null>>;
+  getPromotions?: (this: ChessController, color: ChessColor) => Piece[];
 }
 
 export type ChessEventListener = () => void;

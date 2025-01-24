@@ -3,6 +3,7 @@ import {
   bishop,
   emptyRow,
   filterNull,
+  getPromotions,
   knight,
   pawns,
   queen,
@@ -56,7 +57,7 @@ export class ChessController {
     return this.board.tiles[rowIndex]?.[columnIndex];
   }
   getPromotions(color: ChessColor) {
-    return [knight(color), bishop(color), rook(color), queen(color)];
+    return this.config.getPromotions?.call(this, color) ?? getPromotions(color);
   }
   newGame() {
     this.getPromotions("light");
@@ -102,9 +103,13 @@ export class ChessController {
   }
   getGameState(): GameState {
     const king = this.getCheckedKing(this.board.turn);
-    const movements = this.getPieces()
-      .filter((piece) => piece.color === this.board.turn)
-      .flatMap((piece) => piece.movement(this));
+    const pieces = this.getPieces().filter(
+      (piece) => piece.color === this.board.turn
+    );
+    if (!pieces.length) {
+      return this.board.turn === "dark" ? "light_wins" : "dark_wins";
+    }
+    const movements = pieces.flatMap((piece) => piece.movement(this));
     if (king && !movements.length) {
       return this.board.turn === "dark" ? "light_wins" : "dark_wins";
     }
@@ -207,8 +212,7 @@ export class ChessController {
     controller.board = cloneDeep(this.board);
     return controller;
   }
-  detectNoKings() {
-    // DO SOMETHING ONE DAY
+  detectMissingKings() {
     const kings = this.getPieces().filter((piece) => piece?.type === "king");
     if (kings.length === 1) {
       return kings[0]?.color === "light" ? "light_wins" : "dark_wins";
@@ -216,6 +220,7 @@ export class ChessController {
     if (kings.length === 0) {
       return "stalemate";
     }
+    return "active";
   }
   undo() {
     const history = this.history[this.historyIndex - 1];

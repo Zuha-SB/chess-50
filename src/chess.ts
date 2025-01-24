@@ -1,6 +1,7 @@
 import cloneDeep from "clone-deep";
 import type { ChessController } from "./chess/chess-controller";
 import type {
+  Cell,
   ChessColor,
   Movement,
   MovementConfig,
@@ -557,4 +558,44 @@ export const shuffle = <T>(list: T[]) => {
     list[to] = temp;
   });
   return list;
+};
+
+export const getPromotions = (color: ChessColor) => {
+  return [knight(color), bishop(color), rook(color), queen(color)];
+};
+
+export const atomicPiece = (piece: Piece) => {
+  const movement = piece.movement;
+  piece.movement = (controller, config) => {
+    const movements = movement.call(piece, controller, config);
+    // MAKE IT ATOMIC
+    movements.forEach((movement) => {
+      if (movement.destinations.length === 1) {
+        const destination = movement.destinations[0];
+        if (destination) {
+          const target = controller.getPieceByCoordinates(
+            destination.row,
+            destination.column
+          );
+          const isCapture = !!movement.captures?.length || !!target;
+          if (isCapture) {
+            const captures = movement.captures ?? [];
+            const explosion = Array.from({ length: 9 }).map(
+              (_, index): Cell => {
+                const row = (index % 3) - 1 + destination.row;
+                const column = Math.floor(index / 3) - 1 + destination.column;
+                return {
+                  column,
+                  row,
+                };
+              }
+            );
+            movement.captures = captures.concat(explosion);
+          }
+        }
+      }
+    });
+    return movements;
+  };
+  return piece;
 };

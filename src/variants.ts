@@ -1,6 +1,8 @@
 import {
+  atomicPiece,
   backRow,
   emptyRow,
+  getPromotions,
   hordePawns,
   pawn,
   pawns,
@@ -76,7 +78,36 @@ const chess960 = new ChessController({
   },
 });
 
-export const controllers = [vanilla, kingOfTheHill, horde, chess960];
+const atomicChess = new ChessController({
+  name: "Atomic",
+  slug: "atomic",
+  newGame() {
+    return [
+      backRow("dark").map(atomicPiece),
+      pawns("dark").map(atomicPiece),
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      pawns("light").map(atomicPiece),
+      backRow("light").map(atomicPiece),
+    ];
+  },
+  getPromotions(color) {
+    return getPromotions(color).map(atomicPiece);
+  },
+  getGameState() {
+    return this.detectMissingKings();
+  },
+});
+
+export const controllers = [
+  vanilla,
+  kingOfTheHill,
+  horde,
+  chess960,
+  atomicChess,
+];
 
 export const start = () => {
   const aiBtn = document.querySelector<HTMLButtonElement>("#aiBtn")!;
