@@ -409,12 +409,6 @@ export const king = (color: ChessColor) =>
         // king side castle
         let kingRook;
         for (let column = this.column + 1; column < 8; column++) {
-          const attack = attacks.find(
-            (attack) => attack.column === column && attack.row === this.row
-          );
-          if (attack) {
-            break;
-          }
           const blocker = controller.getPieceByCoordinates(this.row, column);
           if (blocker) {
             if (blocker.type === "rook" && blocker.moves === 0) {
@@ -454,12 +448,6 @@ export const king = (color: ChessColor) =>
         // queen side castle
         let queenRook;
         for (let column = this.column - 1; column >= 0; column--) {
-          const attack = attacks.find(
-            (attack) => attack.column === column && attack.row === this.row
-          );
-          if (attack) {
-            break;
-          }
           const blocker = controller.getPieceByCoordinates(this.row, column);
           if (blocker) {
             if (blocker.type === "rook" && blocker.moves === 0) {
@@ -469,14 +457,22 @@ export const king = (color: ChessColor) =>
           }
         }
         if (queenRook) {
-          // TODO WE NEED TO CHECK IF THERE ARE ATTACKS ON THESE SQUARES
+          // TODO TRACK ATTACKS PPROPERLY
+          const attack = Array.from({ length: this.column - 2 }).find(
+            (_, offset) =>
+              attacks.find(
+                (attack) =>
+                  attack.row === this.row &&
+                  attack.column === this.column - offset - 1
+              )
+          );
           const queenBlockers = [
             controller.getPieceByCoordinates(this.row, 2),
             controller.getPieceByCoordinates(this.row, 3),
           ]
             .filter(filterNull)
             .filter((piece) => ![this.id, queenRook.id].includes(piece.id));
-          if (!queenBlockers.length) {
+          if (!queenBlockers.length && !attack) {
             movements.push({
               column: Math.max(this.column - 2, queenRook.column),
               row: this.row,
