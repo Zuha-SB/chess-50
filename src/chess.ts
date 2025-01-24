@@ -145,6 +145,7 @@ const piece = ({
       const piece = cloneDeep(this);
       piece.color = color;
       piece.image = loadImage(`${color}_${this.type}.png`);
+      piece.id = crypto.randomUUID();
       return piece;
     },
   };
@@ -362,99 +363,81 @@ export const king = (color: ChessColor) =>
     type: "king",
     movement(controller, config) {
       const movements: Movement[] = [];
-      if (!config?.attacksOnly) {
+      if (!config?.attacksOnly && this.moves === 0) {
         const attacks = controller.getAttacksAgainst(controller.getTurn());
         // king side castle
-        const kBishop = controller.getPieceByCoordinates(
-          this.row,
-          this.column + 1
-        );
-        const kKnight = controller.getPieceByCoordinates(
-          this.row,
-          this.column + 2
-        );
-        const kRook = controller.getPieceByCoordinates(
-          this.row,
-          this.column + 3
-        );
-        if (this.moves === 0 && !kBishop && !kKnight && kRook?.moves === 0) {
+        let kingRook;
+        for (let column = this.column + 1; column < 8; column++) {
           const attack = attacks.find(
-            (movement) =>
-              (movement.row === this.row && movement.column === this.column) ||
-              (movement.row === this.row &&
-                movement.column === this.column + 1) ||
-              (movement.row === this.row && movement.column === this.column + 2)
+            (attack) => attack.column === column && attack.row === this.row
           );
-          if (!attack) {
-            movements.push({
-              column: this.column + 2,
-              row: this.row,
-              piece: this,
-              movements: [
-                {
-                  from: {
-                    row: this.row,
-                    column: 7,
-                  },
-                  to: {
-                    row: this.row,
-                    column: 5,
-                  },
-                },
-              ],
-            });
+          if (attack) {
+            break;
+          }
+          const blocker = controller.getPieceByCoordinates(this.row, column);
+          if (blocker) {
+            if (blocker.type === "rook" && blocker.moves === 0) {
+              kingRook = blocker;
+            }
+            break;
           }
         }
-        // queen side castling
-        const queen = controller.getPieceByCoordinates(
-          this.row,
-          this.column - 1
-        );
-        const qBishop = controller.getPieceByCoordinates(
-          this.row,
-          this.column - 2
-        );
-        const qKnight = controller.getPieceByCoordinates(
-          this.row,
-          this.column - 3
-        );
-        const qRook = controller.getPieceByCoordinates(
-          this.row,
-          this.column - 4
-        );
-        if (
-          this.moves === 0 &&
-          !queen &&
-          !qBishop &&
-          !qKnight &&
-          qRook?.moves === 0
-        ) {
-          const attack = attacks.find(
-            (movement) =>
-              (movement.row === this.row && movement.column === this.column) ||
-              (movement.row === this.row &&
-                movement.column === this.column - 1) ||
-              (movement.row === this.row && movement.column === this.column - 2)
-          );
-          if (!attack) {
-            movements.push({
-              column: this.column - 2,
-              row: this.row,
-              piece: this,
-              movements: [
-                {
-                  from: {
-                    row: this.row,
-                    column: 0,
-                  },
-                  to: {
-                    row: this.row,
-                    column: 3,
-                  },
+        // TODO GET BLOCKERS
+        if (kingRook) {
+          movements.push({
+            column: 6,
+            row: this.row,
+            piece: this,
+            movements: [
+              {
+                from: {
+                  row: this.row,
+                  column: 7,
                 },
-              ],
-            });
+                to: {
+                  row: this.row,
+                  column: 5,
+                },
+              },
+            ],
+          });
+        }
+        // queen side castle
+        let queenRook;
+        for (let column = this.column - 1; column >= 0; column--) {
+          const attack = attacks.find(
+            (attack) => attack.column === column && attack.row === this.row
+          );
+          if (attack) {
+            break;
           }
+          const blocker = controller.getPieceByCoordinates(this.row, column);
+          if (blocker) {
+            if (blocker.type === "rook" && blocker.moves === 0) {
+              queenRook = blocker;
+            }
+            break;
+          }
+        }
+        // TODO GET BLOCKERS
+        if (queenRook) {
+          movements.push({
+            column: 2,
+            row: this.row,
+            piece: this,
+            movements: [
+              {
+                from: {
+                  row: this.row,
+                  column: 0,
+                },
+                to: {
+                  row: this.row,
+                  column: 3,
+                },
+              },
+            ],
+          });
         }
       }
       return [
