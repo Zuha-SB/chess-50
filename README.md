@@ -54,3 +54,5 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 # TODO
 
 - Tests
+- Save and load chess states
+- Online multiplayer

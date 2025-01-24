@@ -25,11 +25,11 @@ export class ChessView {
   }
   private onClick(event: MouseEvent) {
     if (this.controller.getGameState() === "active") {
-      const x = event.offsetX - NOTATION_SIZE;
-      const y = event.offsetY - NOTATION_SIZE;
+      const x = event.offsetX;
+      const y = event.offsetY;
       if (x >= 0 && y >= 0) {
-        const column = Math.floor(x / TILE_SIZE);
-        const row = Math.floor(y / TILE_SIZE);
+        const column = Math.floor((x - NOTATION_SIZE) / TILE_SIZE);
+        const row = Math.floor((y - NOTATION_SIZE) / TILE_SIZE);
         const pawn = this.controller.getPromotedPawn();
         if (pawn) {
           const promotions = this.controller.getPromotions(pawn.color);
