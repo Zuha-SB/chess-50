@@ -127,6 +127,7 @@ export const start = () => {
   const aiBtn = document.querySelector<HTMLButtonElement>("#aiBtn")!;
   const undoBtn = document.querySelector<HTMLButtonElement>("#undoBtn")!;
   const redoBtn = document.querySelector<HTMLButtonElement>("#redoBtn")!;
+  const newGameBtn = document.querySelector<HTMLButtonElement>("#newGameBtn")!;
   const canvas = document.querySelector("canvas")!;
   const slug = canvas.dataset.slug;
   const controller = controllers.find(
@@ -148,6 +149,10 @@ export const start = () => {
     };
     redoBtn.onclick = () => {
       controller.redo();
+      view.draw();
+    };
+    newGameBtn.onclick = () => {
+      controller.newGame();
       view.draw();
     };
   }
