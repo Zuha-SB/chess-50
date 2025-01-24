@@ -175,22 +175,18 @@ export class ChessController {
     movement.captures?.forEach((capture) => {
       this.board.tiles[capture.row]![capture.column] = null;
     });
-    if (this.config.name !== CLONE) {
-      this.historyIndex++;
-      this.history.splice(
-        this.historyIndex,
-        this.history.length,
-        cloneDeep(this.board)
-      );
-    }
+    this.historyIndex++;
+    this.history.splice(
+      this.historyIndex,
+      this.history.length,
+      cloneDeep(this.board)
+    );
     if (this.board.turns === 0) {
       this.board.turn = this.board.turn === "light" ? "dark" : "light";
       this.board.turns = this.config.turns || 1;
-      if (this.config.name !== CLONE) {
-        const king = this.getCheckedKing(this.board.turn);
-        if (king) {
-          this.board.checks[this.board.turn]++;
-        }
+      const king = this.getCheckedKing(this.board.turn);
+      if (king) {
+        this.board.checks[this.board.turn]++;
       }
     }
     this.events.afterMove?.forEach((listener) => listener());
