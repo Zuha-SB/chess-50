@@ -9,7 +9,7 @@ import type {
 } from "../types";
 import cloneDeep from "clone-deep";
 
-const backRow = (color: ChessColor) => [
+export const backRow = (color: ChessColor) => [
   rook(color),
   knight(color),
   bishop(color),
@@ -20,7 +20,10 @@ const backRow = (color: ChessColor) => [
   rook(color),
 ];
 
-const emptyRow = () => Array.from({ length: 8 }).map(() => null);
+export const pawns = (color: ChessColor) =>
+  Array.from({ length: 8 }).map(() => pawn(color));
+
+export const emptyRow = () => Array.from({ length: 8 }).map(() => null);
 
 export class ChessController {
   private board: BoardState;
@@ -39,14 +42,14 @@ export class ChessController {
       turn: "light",
       selectedId: "",
       enPassantId: "",
-      tiles: [
+      tiles: this.config?.newGame?.call(this) ?? [
         backRow("dark"),
-        Array.from({ length: 8 }).map(() => pawn("dark")),
+        pawns("dark"),
         emptyRow(),
         emptyRow(),
         emptyRow(),
         emptyRow(),
-        Array.from({ length: 8 }).map(() => pawn("light")),
+        pawns("light"),
         backRow("light"),
       ],
     };
@@ -73,13 +76,6 @@ export class ChessController {
     );
   }
   getGameState(): GameState {
-    const kings = this.getPieces().filter((piece) => piece?.type === "king");
-    if (kings.length === 1) {
-      return kings[0]?.color === "light" ? "light_wins" : "dark_wins";
-    }
-    if (kings.length === 0) {
-      return "stalemate";
-    }
     const king = this.getCheckedKing(this.board.turn);
     const movements = this.getPieces()
       .filter((piece) => piece.color === this.board.turn)
@@ -90,7 +86,7 @@ export class ChessController {
     if (!movements.length) {
       return "stalemate";
     }
-    return this.config?.getGameState.call(this) ?? "active";
+    return this.config?.getGameState?.call(this) ?? "active";
   }
   getCheckedKing(color: ChessColor) {
     const attacks = this.getAttacksAgainst(color);
@@ -142,7 +138,10 @@ export class ChessController {
   getPromotedPawn() {
     return this.getPieces().find(
       (piece) =>
-        piece && piece.type === "pawn" && (piece.row === 0 || piece.row === 7)
+        piece &&
+        piece.type === "pawn" &&
+        ((piece.row === 0 && piece.color === "light") ||
+          (piece.row === 7 && piece.color === "dark"))
     );
   }
   getPieces() {
@@ -175,5 +174,15 @@ export class ChessController {
     const controller = new ChessController();
     controller.board = cloneDeep(this.board);
     return controller;
+  }
+  detectNoKings() {
+    // DO SOMETHING ONE DAY
+    const kings = this.getPieces().filter((piece) => piece?.type === "king");
+    if (kings.length === 1) {
+      return kings[0]?.color === "light" ? "light_wins" : "dark_wins";
+    }
+    if (kings.length === 0) {
+      return "stalemate";
+    }
   }
 }

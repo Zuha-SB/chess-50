@@ -1,4 +1,3 @@
-import { filterNull } from "../chess";
 import { ChessController } from "../chess/chess-controller";
 import { ChessView } from "../chess/chess-view";
 
