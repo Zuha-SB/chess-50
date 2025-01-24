@@ -94,11 +94,15 @@ const removeIllegalMoves = (
         destination.row < 8
     );
     // REMOVE SELF CAPTURES
-    movement.destinations = movement.destinations.filter(
-      (destination) =>
-        controller.getPieceByCoordinates(destination.row, destination.column)
-          ?.color !== destination.piece.color
-    );
+    movement.destinations = movement.castle
+      ? movement.destinations
+      : movement.destinations.filter(
+          (destination) =>
+            controller.getPieceByCoordinates(
+              destination.row,
+              destination.column
+            )?.color !== destination.piece.color
+        );
     if (config?.attacksOnly) {
       return movement.destinations.length;
     }
@@ -444,24 +448,32 @@ export const king = (color: ChessColor) =>
             break;
           }
         }
-        // TODO GET BLOCKERS
         if (kingRook) {
-          movements.push({
-            column: 6,
-            row: this.row,
-            destinations: [
-              {
-                column: 5,
-                row: this.row,
-                piece: kingRook,
-              },
-              {
-                piece: this,
-                row: this.row,
-                column: 6,
-              },
-            ],
-          });
+          const kingBlockers = [
+            controller.getPieceByCoordinates(this.row, 5),
+            controller.getPieceByCoordinates(this.row, 6),
+          ]
+            .filter(filterNull)
+            .filter((piece) => ![this.id, kingRook.id].includes(piece.id));
+          if (!kingBlockers.length) {
+            movements.push({
+              column: Math.min(this.column + 2, kingRook.column),
+              row: this.row,
+              castle: true,
+              destinations: [
+                {
+                  column: 5,
+                  row: this.row,
+                  piece: kingRook,
+                },
+                {
+                  piece: this,
+                  row: this.row,
+                  column: 6,
+                },
+              ],
+            });
+          }
         }
         // queen side castle
         let queenRook;
@@ -480,24 +492,32 @@ export const king = (color: ChessColor) =>
             break;
           }
         }
-        // TODO GET BLOCKERS
         if (queenRook) {
-          movements.push({
-            column: 2,
-            row: this.row,
-            destinations: [
-              {
-                column: 2,
-                row: this.row,
-                piece: this,
-              },
-              {
-                row: this.row,
-                column: 3,
-                piece: queenRook,
-              },
-            ],
-          });
+          const queenBlockers = [
+            controller.getPieceByCoordinates(this.row, 2),
+            controller.getPieceByCoordinates(this.row, 3),
+          ]
+            .filter(filterNull)
+            .filter((piece) => ![this.id, queenRook.id].includes(piece.id));
+          if (!queenBlockers.length) {
+            movements.push({
+              column: Math.max(this.column - 2, queenRook.column),
+              row: this.row,
+              castle: true,
+              destinations: [
+                {
+                  column: 2,
+                  row: this.row,
+                  piece: this,
+                },
+                {
+                  row: this.row,
+                  column: 3,
+                  piece: queenRook,
+                },
+              ],
+            });
+          }
         }
       }
       return [

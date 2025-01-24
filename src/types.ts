@@ -19,6 +19,7 @@ export interface Movement {
   column: number;
   row: number;
   enPassant?: string;
+  castle?: boolean;
   destinations: Array<{
     piece: Piece;
     column: number;
