@@ -55,11 +55,13 @@ export interface BoardState {
   enPassantId: string;
   turn: ChessColor;
   selectedId: string;
+  turns: number;
 }
 
 export type GameState = "active" | "light_wins" | "dark_wins" | "stalemate";
 
 export interface ChessControllerConfig {
+  turns?: number;
   name: string;
   slug: string;
   getGameState?: (this: ChessController) => GameState;

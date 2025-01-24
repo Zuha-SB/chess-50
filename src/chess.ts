@@ -108,11 +108,13 @@ const removeIllegalMoves = (
       return movement.destinations.length;
     }
     // REMOVE SELF CHECKS
-    const future = controller.clone();
-    future.executeMovement(cloneDeep(movement));
-    const king = future.getCheckedKing(controller.getTurn());
-    if (king) {
-      return false;
+    if (controller.getTurns() <= 1) {
+      const future = controller.clone();
+      future.executeMovement(cloneDeep(movement));
+      const king = future.getCheckedKing(controller.getTurn());
+      if (king) {
+        return false;
+      }
     }
     return movement.destinations.length;
   });

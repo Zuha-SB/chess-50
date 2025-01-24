@@ -1,14 +1,4 @@
-import {
-  backRow,
-  bishop,
-  emptyRow,
-  filterNull,
-  getPromotions,
-  knight,
-  pawns,
-  queen,
-  rook,
-} from "../chess";
+import { backRow, emptyRow, filterNull, getPromotions, pawns } from "../chess";
 import type {
   BoardState,
   ChessColor,
@@ -33,6 +23,7 @@ export class ChessController {
       selectedId: "",
       tiles: [],
       turn: "light",
+      turns: 1,
     };
     this.historyIndex = -1;
     this.history = [];
@@ -63,6 +54,7 @@ export class ChessController {
     this.getPromotions("light");
     this.getPromotions("dark");
     const board: BoardState = {
+      turns: 1,
       turn: "light",
       selectedId: "",
       enPassantId: "",
@@ -142,7 +134,11 @@ export class ChessController {
       );
   }
   executeMovement(movement: Movement) {
-    this.board.turn = this.board.turn === "light" ? "dark" : "light";
+    this.board.turns--;
+    if (this.board.turns === 0) {
+      this.board.turn = this.board.turn === "light" ? "dark" : "light";
+      this.board.turns = this.config.turns || 1;
+    }
     this.board.enPassantId = movement.enPassant || "";
     this.board.selectedId = "";
     movement.destinations.forEach((destination) => {
@@ -168,6 +164,9 @@ export class ChessController {
   }
   getTurn() {
     return this.board.turn;
+  }
+  getTurns() {
+    return this.board.turns;
   }
   getPromotedPawn() {
     return this.getPieces().find(

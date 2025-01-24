@@ -101,12 +101,26 @@ const atomicChess = new ChessController({
   },
 });
 
+const doubleMoveChess = new ChessController({
+  name: "Double Move Chess",
+  slug: "double",
+  turns: 2,
+});
+
+const tripleMoveChess = new ChessController({
+  name: "Triple Move Chess",
+  slug: "triple",
+  turns: 3,
+});
+
 export const controllers = [
   vanilla,
   kingOfTheHill,
   horde,
   chess960,
   atomicChess,
+  doubleMoveChess,
+  tripleMoveChess,
 ];
 
 export const start = () => {
