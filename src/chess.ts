@@ -64,9 +64,9 @@ export const raceFront = () => race(king);
 export const raceBack = () => race(queen);
 
 export const backRow = (color: ChessColor) => [
+  rook(color),
   knight(color),
   bishop(color),
-  rook(color),
   queen(color),
   king(color),
   bishop(color),
