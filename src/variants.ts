@@ -226,7 +226,7 @@ const antichess = new ChessController({
         )
       );
     }
-    return movements;
+    return movements.filter((movement) => !movement.castle);
   },
   getPromotions(color) {
     return getPromotions(color).concat(king(color));

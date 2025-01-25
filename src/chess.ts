@@ -2,6 +2,7 @@ import cloneDeep from "clone-deep";
 import type { ChessController } from "./chess/chess-controller";
 import type {
   Cell,
+  CellPiece,
   ChessColor,
   Movement,
   MovementFunction,
@@ -63,9 +64,9 @@ export const raceFront = () => race(king);
 export const raceBack = () => race(queen);
 
 export const backRow = (color: ChessColor) => [
-  rook(color),
   knight(color),
   bishop(color),
+  rook(color),
   queen(color),
   king(color),
   bishop(color),
@@ -398,6 +399,86 @@ export const bishop = (color: ChessColor) =>
     },
   });
 
+const castle = (
+  controller: ChessController,
+  attacks: CellPiece[],
+  direction: number,
+  king: Piece,
+  kingDestination: Cell,
+  rookDestination: Cell
+): Movement[] => {
+  // SEE IF ANYTHING IS BETWEEN THE KING AND THE ROOK AND THE ROOK HAS NOT MOVED
+  let rook;
+  for (
+    let column = king.column + direction;
+    0 <= column && column < 8;
+    column += direction
+  ) {
+    const blocker = controller.getPieceByCoordinates(king.row, column);
+    if (blocker) {
+      if (blocker.type === "rook" && blocker.moves === 0) {
+        rook = blocker;
+      }
+      break;
+    }
+  }
+  if (!rook) {
+    return [];
+  }
+  // SEE IF WE CAN ACTUALLY MOVE TO THE SPOTS
+  const blockers = [
+    controller.getPieceByCoordinates(
+      kingDestination.row,
+      kingDestination.column
+    ),
+    controller.getPieceByCoordinates(
+      kingDestination.row,
+      kingDestination.column
+    ),
+  ]
+    .filter(filterNull)
+    .filter((piece) => ![king.id, rook.id].includes(piece.id));
+  if (blockers.length) {
+    return [];
+  }
+  // SEE IF THE KING PASSES THROUGH AN ATTACK
+  const directionToTarget = getSign(kingDestination.column - king.column);
+  if (directionToTarget) {
+    for (
+      let column = king.column;
+      column !== kingDestination.column;
+      column += directionToTarget
+    ) {
+      const attack = attacks.find(
+        (attack) => attack.column === column && attack.row === king.row
+      );
+      if (attack) {
+        return [];
+      }
+    }
+  }
+  return [
+    {
+      column:
+        direction > 0
+          ? Math.min(king.column + 2, rook.column)
+          : Math.max(king.column - 2, rook.column),
+      row: king.row,
+      castle: true,
+      destinations: [
+        {
+          ...rookDestination,
+          piece: rook,
+        },
+        {
+          ...kingDestination,
+          piece: king,
+        },
+      ],
+    },
+  ];
+};
+
 export const king = (color: ChessColor) =>
   piece({
     color,
@@ -406,92 +487,40 @@ export const king = (color: ChessColor) =>
       const movements: Movement[] = [];
       if (!config?.attacksOnly && this.moves === 0 && this.row % 7 === 0) {
         const attacks = controller.getAttacksAgainst(controller.getTurn());
-        // king side castle
-        let kingRook;
-        for (let column = this.column + 1; column < 8; column++) {
-          const blocker = controller.getPieceByCoordinates(this.row, column);
-          if (blocker) {
-            if (blocker.type === "rook" && blocker.moves === 0) {
-              kingRook = blocker;
-            }
-            break;
-          }
-        }
-        if (kingRook) {
-          // TODO WE NEED TO CHECK IF THERE ARE ATTACKS ON THESE SQUARES
-          const kingBlockers = [
-            controller.getPieceByCoordinates(this.row, 5),
-            controller.getPieceByCoordinates(this.row, 6),
-          ]
-            .filter(filterNull)
-            .filter((piece) => ![this.id, kingRook.id].includes(piece.id));
-          if (!kingBlockers.length) {
-            movements.push({
-              column: Math.min(this.column + 2, kingRook.column),
+        // queen side
+        movements.push(
+          ...castle(
+            controller,
+            attacks,
+            -1,
+            this,
+            {
               row: this.row,
-              castle: true,
-              destinations: [
-                {
-                  column: 5,
-                  row: this.row,
-                  piece: kingRook,
-                },
-                {
-                  piece: this,
-                  row: this.row,
-                  column: 6,
-                },
-              ],
-            });
-          }
-        }
-        // queen side castle
-        let queenRook;
-        for (let column = this.column - 1; column >= 0; column--) {
-          const blocker = controller.getPieceByCoordinates(this.row, column);
-          if (blocker) {
-            if (blocker.type === "rook" && blocker.moves === 0) {
-              queenRook = blocker;
-            }
-            break;
-          }
-        }
-        if (queenRook) {
-          // TODO TRACK ATTACKS PPROPERLY
-          const attack = Array.from({ length: this.column - 2 }).find(
-            (_, offset) =>
-              attacks.find(
-                (attack) =>
-                  attack.row === this.row &&
-                  attack.column === this.column - offset - 1
-              )
-          );
-          const queenBlockers = [
-            controller.getPieceByCoordinates(this.row, 2),
-            controller.getPieceByCoordinates(this.row, 3),
-          ]
-            .filter(filterNull)
-            .filter((piece) => ![this.id, queenRook.id].includes(piece.id));
-          if (!queenBlockers.length && !attack) {
-            movements.push({
-              column: Math.max(this.column - 2, queenRook.column),
+              column: 2,
+            },
+            {
               row: this.row,
-              castle: true,
-              destinations: [
-                {
-                  column: 2,
-                  row: this.row,
-                  piece: this,
-                },
-                {
-                  row: this.row,
-                  column: 3,
-                  piece: queenRook,
-                },
-              ],
-            });
-          }
-        }
+              column: 3,
+            }
+          )
+        );
+        // king side
+        movements.push(
+          ...castle(
+            controller,
+            attacks,
+            1,
+            this,
+            {
+              row: this.row,
+              column: 6,
+            },
+            {
+              row: this.row,
+              column: 5,
+            }
+          )
+        );
       }
       return [
         ...movements,
@@ -571,3 +600,5 @@ export const atomicPiece = (piece: Piece) => {
   };
   return piece;
 };
+
+const getSign = (input: number) => input / Math.abs(input);

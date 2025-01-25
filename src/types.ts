@@ -15,16 +15,16 @@ export interface Cell {
   row: number;
 }
 
+export interface CellPiece extends Cell {
+  piece: Piece;
+}
+
 export interface Movement {
   column: number;
   row: number;
   enPassant?: string;
   castle?: boolean;
-  destinations: Array<{
-    piece: Piece;
-    column: number;
-    row: number;
-  }>;
+  destinations: Array<CellPiece>;
   captures?: Array<Cell>;
 }
 
