@@ -9,6 +9,7 @@ import type {
   Piece,
   PieceType,
 } from "./types";
+import { LIGHT } from "./constant";
 
 export const randomBackRow = (color: ChessColor) => {
   const row: Array<Piece> = [];
@@ -570,40 +571,42 @@ export const getPromotions = (color: ChessColor) => {
   );
 };
 
-export const atomicPiece = (piece: Piece) => {
-  const movement = piece.movement;
-  piece.movement = (controller, config) => {
-    const movements = movement.call(piece, controller, config);
-    // MAKE IT ATOMIC
-    movements.forEach((movement) => {
-      if (movement.destinations.length === 1) {
-        const destination = movement.destinations[0];
-        if (destination) {
-          const target = controller.getPieceByCoordinates(
-            destination.row,
-            destination.column
-          );
-          const isCapture = !!movement.captures?.length || !!target;
-          if (isCapture) {
-            const captures = movement.captures ?? [];
-            const explosion = Array.from({ length: 9 }).map(
-              (_, index): Cell => {
-                const row = (index % 3) - 1 + destination.row;
-                const column = Math.floor(index / 3) - 1 + destination.column;
-                return {
-                  column,
-                  row,
-                };
-              }
+export const atomicPiece = (atomic: Piece) => {
+  return piece({
+    color: atomic.color,
+    type: atomic.type,
+    movement(controller, config) {
+      const movements = atomic.movement.call(this, controller, config);
+      // MAKE IT ATOMIC
+      movements.forEach((movement) => {
+        if (movement.destinations.length === 1) {
+          const destination = movement.destinations[0];
+          if (destination) {
+            const target = controller.getPieceByCoordinates(
+              destination.row,
+              destination.column
             );
-            movement.captures = captures.concat(explosion);
+            const isCapture = !!movement.captures?.length || !!target;
+            if (isCapture) {
+              const captures = movement.captures ?? [];
+              const explosion = Array.from({ length: 9 }).map(
+                (_, index): Cell => {
+                  const row = (index % 3) - 1 + destination.row;
+                  const column = Math.floor(index / 3) - 1 + destination.column;
+                  return {
+                    column,
+                    row,
+                  };
+                }
+              );
+              movement.captures = captures.concat(explosion);
+            }
           }
         }
-      }
-    });
-    return movements;
-  };
-  return piece;
+      });
+      return movements;
+    },
+  });
 };
 
 export const crazyPiece = (crazy: Piece): Piece => {
@@ -681,4 +684,60 @@ export const pieceMap: Record<PieceType, (color: ChessColor) => Piece> = {
   king,
   crazy: (color) => crazyPiece(pawn(color)),
   duck,
+};
+
+export const circePiece = (circe: Piece) => {
+  return piece({
+    color: circe.color,
+    type: circe.type,
+    movement(controller, config) {
+      return circe.movement.call(this, controller, config).map((movement) => {
+        const destination = movement.destinations[0];
+        if (destination) {
+          const captured =
+            controller.getPieceByCoordinates(
+              destination.row,
+              destination.column
+            ) ||
+            movement.captures?.map((capture) =>
+              controller.getPieceByCoordinates(capture.row, capture.column)
+            )?.[0];
+          if (captured) {
+            if (this.type === "pawn") {
+              const row = captured.color === "dark" ? 1 : 6;
+              const blocker = controller.getPieceByCoordinates(
+                row,
+                captured.column
+              );
+              if (!blocker) {
+                captured.moves = 0;
+                movement.destinations.unshift({
+                  piece: captured,
+                  column: captured.column,
+                  row,
+                });
+              }
+            } else if (this.type === "queen") {
+              const row = captured.color === "dark" ? 0 : 7;
+              const blocker = controller.getPieceByCoordinates(row, 3);
+              if (!blocker) {
+                captured.moves = 0;
+                movement.destinations.unshift({
+                  piece: captured,
+                  column: 3,
+                  row,
+                });
+              }
+            } else {
+              const tileColor =
+                (captured.column + captured.row * 8) % 2 === 0
+                  ? "light"
+                  : "dark";
+            }
+          }
+        }
+        return movement;
+      });
+    },
+  });
 };

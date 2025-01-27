@@ -2,6 +2,7 @@ import cloneDeep from "clone-deep";
 import {
   atomicPiece,
   backRow,
+  circePiece,
   crazyPiece,
   duck,
   emptyRow,
@@ -380,6 +381,26 @@ const duckChess = new ChessController({
   },
 });
 
+const circe = new ChessController({
+  name: "Circe",
+  slug: "circe",
+  newGame() {
+    return [
+      backRow("dark").map(circePiece),
+      pawns("dark").map(circePiece),
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      pawns("light").map(circePiece),
+      backRow("light").map(circePiece),
+    ];
+  },
+  getPromotions(color) {
+    return getPromotions(color).map(circePiece);
+  },
+});
+
 export const controllers = [
   vanilla,
   kingOfTheHill,
@@ -393,6 +414,7 @@ export const controllers = [
   antichess,
   crazyHouse,
   duckChess,
+  circe,
 ];
 
 export const start = () => {
