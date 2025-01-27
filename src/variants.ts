@@ -370,6 +370,12 @@ const duckChess = new ChessController({
       : movements;
   },
   getGameState() {
+    const movements = this.getPieces()
+      .filter((piece) => piece.color === this.getTurn())
+      .flatMap((piece) => piece.movement(this));
+    if (!movements.length) {
+      return this.getTurn() === "light" ? "light_wins" : "dark_wins";
+    }
     return this.detectMissingKings();
   },
 });

@@ -53,7 +53,6 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 # TODO
 
-- Duck Chess - Stalemate is a win
 - Bug house
 - Tests
 - Show chess notation history
