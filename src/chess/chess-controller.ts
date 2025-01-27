@@ -43,6 +43,12 @@ export class ChessController {
     this.historyIndex = -1;
     this.history = [];
   }
+  getRows() {
+    return this.config.rows || 8;
+  }
+  getColumns() {
+    return this.config.columns || 8;
+  }
   onDraw(context: CanvasRenderingContext2D) {
     this.config.onDraw?.call(this, context);
   }
@@ -333,9 +339,9 @@ export class ChessController {
       movement.destinations = movement.destinations.filter(
         (destination) =>
           destination.column >= 0 &&
-          destination.column < 8 &&
+          destination.column < this.getColumns() &&
           destination.row >= 0 &&
-          destination.row < 8
+          destination.row < this.getRows()
       );
       // REMOVE SELF CAPTURES
       movement.destinations = movement.castle

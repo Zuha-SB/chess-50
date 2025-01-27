@@ -80,7 +80,8 @@ export const pawns = (color: ChessColor) =>
 export const hordePawns = (color: ChessColor) =>
   Array.from({ length: 8 }).map(() => hordePawn(color));
 
-export const emptyRow = () => Array.from({ length: 8 }).map(() => null);
+export const emptyRow = (length: number = 8) =>
+  Array.from({ length }).map(() => null);
 
 const loadImage = (() => {
   const cache: Record<string, HTMLImageElement> = {};

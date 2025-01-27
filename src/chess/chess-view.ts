@@ -76,11 +76,11 @@ export class ChessView {
     this.context.strokeRect(
       NOTATION_SIZE,
       NOTATION_SIZE,
-      8 * TILE_SIZE,
-      8 * TILE_SIZE
+      this.controller.getColumns() * TILE_SIZE,
+      this.controller.getRows() * TILE_SIZE
     );
-    for (let column = 0; column < 8; column++) {
-      for (let row = 0; row < 8; row++) {
+    for (let column = 0; column < this.controller.getColumns(); column++) {
+      for (let row = 0; row < this.controller.getRows(); row++) {
         this.context.fillStyle = (column + row) % 2 === 0 ? LIGHT : DARK;
         this.context.fillRect(
           column * TILE_SIZE + NOTATION_SIZE,
@@ -96,18 +96,28 @@ export class ChessView {
     this.context.font = `${NOTATION_SIZE / 2}px sans-serif`;
     this.context.textAlign = "center";
     this.context.textBaseline = "middle";
-    FILES.forEach((file, index) => {
+    FILES.slice(0, this.controller.getColumns()).forEach((file, index) => {
       const x = NOTATION_SIZE + TILE_SIZE / 2 + index * TILE_SIZE;
       const y = NOTATION_SIZE / 2;
       this.context.fillText(file, x, y);
-      this.context.fillText(file, x, y + NOTATION_SIZE + TILE_SIZE * 8);
+      this.context.fillText(
+        file,
+        x,
+        y + NOTATION_SIZE + TILE_SIZE * this.controller.getRows()
+      );
     });
-    RANKS.forEach((rank, index) => {
-      const x = NOTATION_SIZE / 2;
-      const y = NOTATION_SIZE + TILE_SIZE / 2 + index * TILE_SIZE;
-      this.context.fillText(rank, x + NOTATION_SIZE + TILE_SIZE * 8, y);
-      this.context.fillText(rank, x, y);
-    });
+    RANKS.slice(RANKS.length - this.controller.getRows()).forEach(
+      (rank, index) => {
+        const x = NOTATION_SIZE / 2;
+        const y = NOTATION_SIZE + TILE_SIZE / 2 + index * TILE_SIZE;
+        this.context.fillText(
+          rank,
+          x + NOTATION_SIZE + TILE_SIZE * this.controller.getColumns(),
+          y
+        );
+        this.context.fillText(rank, x, y);
+      }
+    );
   }
   private drawPieces() {
     this.controller.getPieces().forEach((piece) => {
@@ -185,7 +195,9 @@ export class ChessView {
     this.context.strokeStyle = "black";
     this.context.fillStyle =
       this.controller.getTurn() === "light" ? LIGHT : DARK;
-    const gap = 8 * TILE_SIZE + NOTATION_SIZE;
+    const verticalGap = this.controller.getRows() * TILE_SIZE + NOTATION_SIZE;
+    const horizontalGap =
+      this.controller.getColumns() * TILE_SIZE + NOTATION_SIZE;
     this.ellipse(
       NOTATION_SIZE / 2,
       NOTATION_SIZE / 2,
@@ -196,7 +208,7 @@ export class ChessView {
       2 * Math.PI
     );
     this.ellipse(
-      NOTATION_SIZE / 2 + gap,
+      NOTATION_SIZE / 2 + horizontalGap,
       NOTATION_SIZE / 2,
       NOTATION_SIZE / 4,
       NOTATION_SIZE / 4,
@@ -206,7 +218,7 @@ export class ChessView {
     );
     this.ellipse(
       NOTATION_SIZE / 2,
-      NOTATION_SIZE / 2 + gap,
+      NOTATION_SIZE / 2 + verticalGap,
       NOTATION_SIZE / 4,
       NOTATION_SIZE / 4,
       0,
@@ -214,8 +226,8 @@ export class ChessView {
       2 * Math.PI
     );
     this.ellipse(
-      NOTATION_SIZE / 2 + gap,
-      NOTATION_SIZE / 2 + gap,
+      NOTATION_SIZE / 2 + horizontalGap,
+      NOTATION_SIZE / 2 + verticalGap,
       NOTATION_SIZE / 4,
       NOTATION_SIZE / 4,
       0,

@@ -12,6 +12,7 @@ import {
   pawn,
   pawns,
   pieceMap,
+  queen,
   raceBack,
   raceFront,
   randomBackRow,
@@ -20,7 +21,7 @@ import { ChessAI } from "./chess/chess-ai";
 import { ChessController } from "./chess/chess-controller";
 import { ChessView } from "./chess/chess-view";
 import { HEIGHT, NOTATION_SIZE, SIDEBAR, TILE_SIZE, WIDTH } from "./constant";
-import type { Drawable, PieceData, PieceType } from "./types";
+import type { Cell, Drawable, GameState, PieceData, PieceType } from "./types";
 
 const vanilla = new ChessController({
   name: "Vanilla",
@@ -309,7 +310,7 @@ const crazyHouse = new ChessController({
     getCaptureStats(this).forEach((stat) => {
       context.fillStyle = stat.fill;
       if (stat.type === "text") {
-        context.fillText(stat.text, stat.x, stat.y);
+        context.fillText(stat.text || "", stat.x, stat.y);
       } else if (stat.type === "rect") {
         context.fillRect(stat.x, stat.y, stat.width, stat.height);
       }
@@ -401,6 +402,102 @@ const circe = new ChessController({
   },
 });
 
+const findFourOfAKing = (
+  states: GameState[],
+  controller: ChessController,
+  callback: (index: number) => Cell
+) => {
+  let light = 0;
+  let dark = 0;
+  for (let index = 0; index < 5; index++) {
+    const cell = callback(index);
+    const piece = controller.getPieceByCoordinates(cell.row, cell.column);
+    if (piece?.color === "light") {
+      light++;
+    } else {
+      light = 0;
+    }
+    if (piece?.color === "dark") {
+      dark++;
+    } else {
+      dark = 0;
+    }
+    if (light >= 4) {
+      states.push("light_wins");
+      return;
+    }
+    if (dark >= 4) {
+      states.push("dark_wins");
+      return;
+    }
+  }
+};
+
+const queens = new ChessController({
+  name: "All Queens",
+  slug: "queens",
+  getGameState() {
+    // CHECK COLUMNS
+    const states: GameState[] = [];
+    for (let column = 0; column < 5; column++) {
+      findFourOfAKing(states, this, (row) => ({
+        row,
+        column,
+      }));
+    }
+    for (let row = 0; row < 5; row++) {
+      findFourOfAKing(states, this, (column) => ({
+        row,
+        column,
+      }));
+    }
+    findFourOfAKing(states, this, (diagonal) => ({
+      row: diagonal,
+      column: diagonal,
+    }));
+    findFourOfAKing(states, this, (diagonal) => ({
+      row: 4 - diagonal,
+      column: diagonal,
+    }));
+
+    return states[0] || "active";
+  },
+  newGame() {
+    return [
+      [
+        queen("dark"),
+        queen("light"),
+        queen("dark"),
+        queen("light"),
+        queen("dark"),
+      ],
+      emptyRow(5),
+      [queen("light"), null, null, null, queen("dark")],
+      emptyRow(5),
+      [
+        queen("light"),
+        queen("dark"),
+        queen("light"),
+        queen("dark"),
+        queen("light"),
+      ],
+    ];
+  },
+  rows: 5,
+  columns: 5,
+  removeIllegalMoves(movements) {
+    return movements
+      .map((movement) => {
+        movement.destinations = movement.destinations.filter(
+          (destination) =>
+            !this.getPieceByCoordinates(destination.row, destination.column)
+        );
+        return movement;
+      })
+      .filter((movement) => movement.destinations.length);
+  },
+});
+
 export const controllers = [
   vanilla,
   kingOfTheHill,
@@ -415,6 +512,7 @@ export const controllers = [
   crazyHouse,
   duckChess,
   circe,
+  queens,
 ];
 
 export const start = () => {

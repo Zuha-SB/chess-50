@@ -78,6 +78,8 @@ export type ChessCaptures = Partial<Record<PieceType, number>>;
 export type GameState = "active" | "light_wins" | "dark_wins" | "stalemate";
 
 export interface ChessControllerConfig {
+  rows?: number;
+  columns?: number;
   onDraw?: (this: ChessController, context: CanvasRenderingContext2D) => void;
   turns?: number;
   name: string;
