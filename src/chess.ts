@@ -640,6 +640,36 @@ export const crazyPiece = (crazy: Piece): Piece => {
 
 const getSign = (input: number) => input / Math.abs(input);
 
+export const duck = () =>
+  piece({
+    color: "neutral",
+    movement(controller) {
+      return Array.from({
+        length: 64,
+      })
+        .map((_, index): Movement | null => {
+          const row = Math.floor(index / 8);
+          const column = index % 8;
+          const piece = controller.getPieceByCoordinates(row, column);
+          return piece
+            ? null
+            : {
+                column,
+                row,
+                destinations: [
+                  {
+                    row,
+                    column,
+                    piece: this,
+                  },
+                ],
+              };
+        })
+        .filter(filterNull);
+    },
+    type: "duck",
+  });
+
 export const pieceMap: Record<PieceType, (color: ChessColor) => Piece> = {
   bishop,
   knight,
@@ -648,4 +678,5 @@ export const pieceMap: Record<PieceType, (color: ChessColor) => Piece> = {
   rook,
   king,
   crazy: (color) => crazyPiece(pawn(color)),
+  duck,
 };

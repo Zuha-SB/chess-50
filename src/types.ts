@@ -1,6 +1,6 @@
 import type { ChessController } from "./chess/chess-controller";
 
-export type ChessColor = "dark" | "light";
+export type ChessColor = "dark" | "light" | "neutral";
 
 export type PieceType =
   | "king"
@@ -9,7 +9,8 @@ export type PieceType =
   | "bishop"
   | "knight"
   | "pawn"
-  | "crazy";
+  | "crazy"
+  | "duck";
 
 export interface Cell {
   column: number;
@@ -68,6 +69,7 @@ export interface BoardState {
   capturedPieces: {
     light: ChessCaptures;
     dark: ChessCaptures;
+    neutral: ChessCaptures;
   };
 }
 
@@ -80,12 +82,14 @@ export interface ChessControllerConfig {
   turns?: number;
   name: string;
   slug: string;
+  canLightFullyMove?: boolean;
   hasCheck?: boolean;
   removeIllegalMoves?: (
     this: ChessController,
     movements: Movement[],
     config: MovementConfig | null | undefined
   ) => Movement[];
+  getSelectedPiece?: (this: ChessController) => Piece | null | undefined;
   getGameState?: (this: ChessController) => GameState;
   newGame?: (this: ChessController) => Array<Array<Piece | null>>;
   getPromotions?: (this: ChessController, color: ChessColor) => Piece[];

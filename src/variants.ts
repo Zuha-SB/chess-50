@@ -3,6 +3,7 @@ import {
   atomicPiece,
   backRow,
   crazyPiece,
+  duck,
   emptyRow,
   getPromotions,
   hordePawns,
@@ -329,6 +330,39 @@ const crazyHouse = new ChessController({
   },
 });
 
+const duckChess = new ChessController({
+  name: "Duck Chess",
+  slug: "duck",
+  turns: 2,
+  canLightFullyMove: true,
+  hasCheck: false,
+  getSelectedPiece() {
+    const quack =
+      this.getPieces().find((piece) => piece.type === "duck") || duck();
+    return this.getTurns() === 1 ? quack : null;
+  },
+  removeIllegalMoves(movements) {
+    const duck = this.getPieces().find((piece) => piece.type === "duck");
+    return duck
+      ? movements
+          .map((movement) => {
+            return {
+              ...movement,
+              destinations: movement.destinations.filter(
+                (destination) =>
+                  destination.row !== duck.row ||
+                  destination.column !== duck.column
+              ),
+            };
+          })
+          .filter((movement) => movement.destinations.length)
+      : movements;
+  },
+  getGameState() {
+    return this.detectMissingKings();
+  },
+});
+
 export const controllers = [
   vanilla,
   kingOfTheHill,
@@ -341,6 +375,7 @@ export const controllers = [
   race,
   antichess,
   crazyHouse,
+  duckChess,
 ];
 
 export const start = () => {

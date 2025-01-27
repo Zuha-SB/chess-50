@@ -37,6 +37,7 @@ export class ChessController {
       capturedPieces: {
         dark: {},
         light: {},
+        neutral: {},
       },
     };
     this.historyIndex = -1;
@@ -77,11 +78,12 @@ export class ChessController {
       capturedPieces: {
         dark: {},
         light: {},
+        neutral: {},
       },
       halfmoves: 0,
       movesSinceCaptureOrPawn: 0,
       wholemoves: 0,
-      turns: 1,
+      turns: this.config.canLightFullyMove ? this.config.turns ?? 1 : 1,
       turn: "light",
       enPassantId: "",
       checks: {
@@ -265,7 +267,7 @@ export class ChessController {
     return this.getPieces().find((piece) => piece.id === id);
   }
   getSelectedPiece() {
-    return this.selectedPiece;
+    return this.config.getSelectedPiece?.call(this) || this.selectedPiece;
   }
   getEnPassantId() {
     return this.board.enPassantId;
