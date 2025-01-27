@@ -129,6 +129,9 @@ export class ChessController {
       }
       return "stalemate";
     }
+    if (this.board.movesSinceCaptureOrPawn >= 100) {
+      return "stalemate";
+    }
     return "active";
   }
   getChecks() {
@@ -175,7 +178,23 @@ export class ChessController {
     movement.captures?.forEach((capture) => {
       this.board.tiles[capture.row]![capture.column] = null;
     });
+    const isCapture =
+      movement.captures?.length ||
+      (!movement.castle &&
+        movement.destinations.find((destination) =>
+          this.getPieceByCoordinates(destination.row, destination.column)
+        ));
+    const isPawn = movement.destinations.find(
+      (destination) => destination.piece.type === "pawn"
+    );
+    if (isCapture || isPawn) {
+      this.board.movesSinceCaptureOrPawn = 0;
+    } else {
+      this.board.movesSinceCaptureOrPawn++;
+    }
+    this.board.halfmoves++;
     if (this.board.turns === 0) {
+      this.board.wholemoves++;
       this.board.turn = this.board.turn === "light" ? "dark" : "light";
       this.board.turns = this.config.turns || 1;
       const king = this.getCheckedKing(this.board.turn);

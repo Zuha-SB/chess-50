@@ -60,6 +60,9 @@ export interface BoardState {
     light: number;
     dark: number;
   };
+  halfmoves: number;
+  wholemoves: number;
+  movesSinceCaptureOrPawn: number;
 }
 
 export type GameState = "active" | "light_wins" | "dark_wins" | "stalemate";

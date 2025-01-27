@@ -233,6 +233,13 @@ const antichess = new ChessController({
   },
 });
 
+const crazyHouse = new ChessController({
+  name: "Crazy House",
+  slug: "crazy",
+  onDraw() {},
+  onClick() {},
+});
+
 export const controllers = [
   vanilla,
   kingOfTheHill,
@@ -244,6 +251,7 @@ export const controllers = [
   threeCheck,
   race,
   antichess,
+  crazyHouse,
 ];
 
 export const start = () => {
