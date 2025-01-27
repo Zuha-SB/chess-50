@@ -206,8 +206,14 @@ export class ChessController {
     movement.destinations.forEach((destination) => {
       const { piece, row, column } = destination;
       piece.moves++;
-      this.board.tiles[piece.row]![piece.column] = null;
-      this.board.tiles[row]![column] = piece;
+      const fromRow = this.board.tiles[piece.row];
+      if (fromRow) {
+        fromRow[piece.column] = null;
+      }
+      const toRow = this.board.tiles[row];
+      if (toRow) {
+        toRow[column] = piece;
+      }
       piece.row = row;
       piece.column = column;
     });

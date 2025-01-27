@@ -114,8 +114,8 @@ const piece = ({
       );
     },
     type,
-    column: 0,
-    row: 0,
+    column: -1,
+    row: -1,
     moves: 0,
     withColor(color) {
       const piece = cloneDeep(this);
