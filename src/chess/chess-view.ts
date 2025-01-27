@@ -129,7 +129,7 @@ export class ChessView {
   }
   private drawSelected() {
     const selected = this.controller.getSelectedPiece();
-    if (selected) {
+    if (selected && selected.type !== "crazy") {
       this.context.fillStyle = "rgba(0, 255, 0, .7)";
       this.context.fillRect(
         NOTATION_SIZE + selected.column * TILE_SIZE,

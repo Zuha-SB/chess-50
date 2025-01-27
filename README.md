@@ -55,7 +55,7 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 - Decrement piece count
 - Keep track of promoted pieces
-- Do not show selector for offscreen piece
+
 - Crazy house
 - Duck Chess (https://www.chess.com/terms/duck-chess)
 - Bug house
