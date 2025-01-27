@@ -53,7 +53,6 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 # TODO
 
-- Duck Chess (https://www.chess.com/terms/duck-chess)
 - Bug house
 - Tests
 - Show chess notation history

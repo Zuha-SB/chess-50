@@ -129,7 +129,13 @@ export class ChessView {
   }
   private drawSelected() {
     const selected = this.controller.getSelectedPiece();
-    if (selected && !["duck", "crazy"].includes(selected.type)) {
+    if (
+      selected &&
+      selected.column >= 0 &&
+      selected.column < 8 &&
+      selected.row >= 0 &&
+      selected.row < 8
+    ) {
       this.context.fillStyle = "rgba(0, 255, 0, .7)";
       this.context.fillRect(
         NOTATION_SIZE + selected.column * TILE_SIZE,
