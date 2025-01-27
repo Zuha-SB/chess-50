@@ -108,8 +108,8 @@ export interface PieceData {
 }
 
 export interface Drawable<T> {
-  type: "text";
-  text: string;
+  type: "text" | "rect";
+  text?: string;
   x: number;
   y: number;
   width: number;

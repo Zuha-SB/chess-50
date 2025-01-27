@@ -252,6 +252,7 @@ const FONT_SIZE = 25;
 const PADDING = 10;
 
 const getCaptureStats = (controller: ChessController) => {
+  const selected = controller.getSelectedPiece();
   const drawables: Array<Drawable<PieceData>> = [];
   let row = 0;
   const captures = controller.getCaptures();
@@ -268,6 +269,20 @@ const getCaptureStats = (controller: ChessController) => {
     });
     row++;
     Object.entries(captures[color]).forEach(([type, count]) => {
+      if (selected?.type === "crazy") {
+        const piece = selected.movement(controller)[0]?.destinations[0]?.piece;
+
+        if (piece?.type === type && piece.color !== color) {
+          drawables.push({
+            type: "rect",
+            x,
+            y: PADDING + FONT_SIZE * row,
+            width: SIDEBAR - PADDING * 2,
+            height: FONT_SIZE,
+            fill: "rgba(0, 255, 0, .7)",
+          });
+        }
+      }
       drawables.push({
         type: "text",
         text: `${type} : ${count}`,
@@ -297,9 +312,11 @@ const crazyHouse = new ChessController({
     context.textAlign = "left";
     context.font = `${FONT_SIZE}px san-serif`;
     getCaptureStats(this).forEach((stat) => {
+      context.fillStyle = stat.fill;
       if (stat.type === "text") {
-        context.fillStyle = stat.fill;
         context.fillText(stat.text, stat.x, stat.y);
+      } else if (stat.type === "rect") {
+        context.fillRect(stat.x, stat.y, stat.width, stat.height);
       }
     });
   },
