@@ -598,18 +598,10 @@ export const atomicPiece = (piece: Piece) => {
   return piece;
 };
 
-export const crazyPiece = (piece: Piece): Piece => {
-  return {
-    id: crypto.randomUUID(),
-    color: piece.color,
-    column: -1,
-    row: -1,
-    image: new Image(),
-    moves: -1,
-    type: "pawn",
-    withColor() {
-      return this;
-    },
+export const crazyPiece = (crazy: Piece): Piece => {
+  return piece({
+    color: crazy.color,
+    type: "crazy",
     movement(controller) {
       const movements = Array.from({ length: 64 })
         .map((_, index): Movement | null => {
@@ -624,7 +616,7 @@ export const crazyPiece = (piece: Piece): Piece => {
                   {
                     column,
                     row,
-                    piece,
+                    piece: crazy,
                   },
                 ],
                 captures: [],
@@ -632,11 +624,11 @@ export const crazyPiece = (piece: Piece): Piece => {
         })
         .filter(filterNull);
 
-      return piece.type === "pawn"
+      return crazy.type === "pawn"
         ? movements.filter((movement) => movement.row % 7 !== 0)
         : movements;
     },
-  };
+  });
 };
 
 const getSign = (input: number) => input / Math.abs(input);
@@ -648,4 +640,5 @@ export const pieceMap: Record<PieceType, (color: ChessColor) => Piece> = {
   queen,
   rook,
   king,
+  crazy: (color) => crazyPiece(pawn(color)),
 };
