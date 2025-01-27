@@ -9,7 +9,6 @@ import type {
   Piece,
   PieceType,
 } from "./types";
-import { LIGHT } from "./constant";
 
 export const randomBackRow = (color: ChessColor) => {
   const row: Array<Piece> = [];
@@ -691,7 +690,8 @@ export const circePiece = (circe: Piece) => {
     color: circe.color,
     type: circe.type,
     movement(controller, config) {
-      return circe.movement.call(this, controller, config).map((movement) => {
+      const movements = circe.movement.call(this, controller, config);
+      return movements.map((movement) => {
         const destination = movement.destinations[0];
         if (destination) {
           const captured =
@@ -703,36 +703,50 @@ export const circePiece = (circe: Piece) => {
               controller.getPieceByCoordinates(capture.row, capture.column)
             )?.[0];
           if (captured) {
-            if (this.type === "pawn") {
+            const type = captured.type;
+            if (type === "pawn") {
               const row = captured.color === "dark" ? 1 : 6;
-              const blocker = controller.getPieceByCoordinates(
+              captured.moves = 0;
+              movement.destinations.unshift({
+                piece: captured,
+                column: captured.column,
                 row,
-                captured.column
-              );
-              if (!blocker) {
-                captured.moves = 0;
-                movement.destinations.unshift({
-                  piece: captured,
-                  column: captured.column,
-                  row,
-                });
-              }
-            } else if (this.type === "queen") {
+              });
+            } else if (type === "queen") {
               const row = captured.color === "dark" ? 0 : 7;
-              const blocker = controller.getPieceByCoordinates(row, 3);
-              if (!blocker) {
-                captured.moves = 0;
-                movement.destinations.unshift({
-                  piece: captured,
-                  column: 3,
-                  row,
-                });
-              }
-            } else {
+              captured.moves = 0;
+              movement.destinations.unshift({
+                piece: captured,
+                column: 3,
+                row,
+              });
+            } else if (
+              type === "bishop" ||
+              type === "knight" ||
+              type === "rook"
+            ) {
               const tileColor =
-                (captured.column + captured.row * 8) % 2 === 0
+                (captured.column + (captured.row % 2)) % 2 === 0
                   ? "light"
                   : "dark";
+              const row = captured.color === "dark" ? 0 : 7;
+              const columnMaping = {
+                rook: [0, 7],
+                bishop: [2, 5],
+                knight: [6, 1],
+              };
+              const tileIndex = tileColor === "light" ? 1 : 0;
+              const colorIndex = captured.color === "light" ? 0 : 1;
+              const column =
+                columnMaping[type][(tileIndex + colorIndex) % 2] ?? -1;
+              if (column >= 0) {
+                captured.moves = 0;
+                movement.destinations.unshift({
+                  piece: captured,
+                  column,
+                  row,
+                });
+              }
             }
           }
         }
