@@ -40,7 +40,7 @@ export interface MovementConfig {
 export type MovementFunction = (
   this: Piece,
   controller: ChessController,
-  config?: MovementConfig
+  config?: MovementConfig | null | undefined
 ) => Movement[];
 
 export interface Piece {

@@ -54,7 +54,11 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 # TODO
 
-- Identity Chess
+- Dragonfly
+- Knight mate
+- Capablanca
+- Fix castling for gothic chess
+
 - Move all peices chess
 - Moster chess?
 - Bug house

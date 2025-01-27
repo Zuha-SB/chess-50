@@ -546,6 +546,30 @@ const traitorChess = new ChessController({
   },
 });
 
+const checkless = new ChessController({
+  name: "Checkless",
+  slug: "checkless",
+  removeIllegalMoves(movements, config) {
+    if (config?.attacksOnly) {
+      return movements;
+    }
+    return movements.filter((movement) => {
+      const future = this.clone();
+      future.executeMovement(cloneDeep(movement));
+      const isCheck = future.getCheckedKing(future.getTurn());
+      if (isCheck) {
+        const movements = future
+          .getPieces()
+          .filter((piece) => piece.color === future.getTurn())
+          .flatMap((piece) => piece.movement(future, config));
+        const isCheckmate = !movements.length;
+        return isCheckmate;
+      }
+      return true;
+    });
+  },
+});
+
 export const controllers = [
   vanilla,
   kingOfTheHill,
@@ -564,6 +588,7 @@ export const controllers = [
   progressive,
   gothic,
   traitorChess,
+  checkless,
 ];
 
 export const start = () => {
