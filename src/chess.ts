@@ -167,7 +167,14 @@ const piece = ({
   };
 };
 
-export const pawn = (color: ChessColor, canMove2?: (this: Piece) => boolean) =>
+export const pawn = (
+  color: ChessColor,
+  canMove2: (this: Piece, controller: ChessController) => boolean = function (
+    controller
+  ) {
+    return this.column % (controller.getRows() - 2) === 0;
+  }
+) =>
   piece({
     color,
     type: "pawn",
@@ -184,7 +191,7 @@ export const pawn = (color: ChessColor, canMove2?: (this: Piece) => boolean) =>
       );
       if (!config?.attacksOnly) {
         // HANDLE FORWARD 2
-        const canMove2Eval = canMove2?.call(this) || this.row % 6 < 2;
+        const canMove2Eval = canMove2.call(this, controller);
         if (canMove2Eval && !forward && !forward2) {
           movement.push({
             column: this.column,
@@ -311,6 +318,11 @@ export const pawn = (color: ChessColor, canMove2?: (this: Piece) => boolean) =>
       return movement;
     },
   });
+
+export const solider = (color: ChessColor) => pawn(color, () => false);
+
+export const soliders = (color: ChessColor, length: number = 8) =>
+  Array.from({ length }).map(() => solider(color));
 
 export const rook = (color: ChessColor) =>
   piece({
@@ -665,7 +677,10 @@ export const crazyPiece = (crazy: Piece): Piece => {
                   {
                     column,
                     row,
-                    piece: crazy,
+                    piece: {
+                      ...crazy,
+                      moves: 1,
+                    },
                   },
                 ],
                 captures: [],
@@ -834,3 +849,13 @@ export const atomic = (atomic: Piece) => {
     },
   });
 };
+
+export const dragonFlyBackrow = (color: ChessColor) => [
+  rook(color),
+  bishop(color),
+  bishop(color),
+  king(color),
+  knight(color),
+  knight(color),
+  rook(color),
+];

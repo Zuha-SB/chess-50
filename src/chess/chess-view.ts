@@ -224,31 +224,33 @@ export class ChessView {
   private drawPawnPromotion() {
     const pawn = this.controller.getPromotedPawn();
     if (pawn) {
-      this.context.fillStyle = "rgba(0, 0, 0, .7)";
-      this.context.fillRect(0, 0, WIDTH, HEIGHT);
       const promotions = this.controller.getPromotions(pawn.color);
-      const cx = WIDTH / 2 - (promotions.length * TILE_SIZE) / 2;
-      this.context.fillStyle = "white";
-      this.context.fillRect(
-        cx,
-        HEIGHT / 2 - TILE_SIZE / 2,
-        TILE_SIZE * promotions.length,
-        TILE_SIZE
-      );
-      promotions.forEach((promotion, index) => {
-        const image = promotion.image;
-        const space = TILE_SIZE - PIECE_PADDING * 2;
-        const scale = Math.min(space / image.width, space / image.height);
-        const width = image.width * scale;
-        const height = image.height * scale;
-        this.context.drawImage(
-          image,
-          cx + index * TILE_SIZE + TILE_SIZE / 4,
-          HEIGHT / 2 - height / 2,
-          width,
-          height
+      if (promotions.length) {
+        this.context.fillStyle = "rgba(0, 0, 0, .7)";
+        this.context.fillRect(0, 0, WIDTH, HEIGHT);
+        const cx = WIDTH / 2 - (promotions.length * TILE_SIZE) / 2;
+        this.context.fillStyle = "white";
+        this.context.fillRect(
+          cx,
+          HEIGHT / 2 - TILE_SIZE / 2,
+          TILE_SIZE * promotions.length,
+          TILE_SIZE
         );
-      });
+        promotions.forEach((promotion, index) => {
+          const image = promotion.image;
+          const space = TILE_SIZE - PIECE_PADDING * 2;
+          const scale = Math.min(space / image.width, space / image.height);
+          const width = image.width * scale;
+          const height = image.height * scale;
+          this.context.drawImage(
+            image,
+            cx + index * TILE_SIZE + TILE_SIZE / 4,
+            HEIGHT / 2 - height / 2,
+            width,
+            height
+          );
+        });
+      }
     }
   }
   private drawEndGame() {

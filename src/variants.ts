@@ -4,6 +4,7 @@ import {
   backRow,
   circePiece,
   crazyPiece,
+  dragonFlyBackrow,
   duck,
   emptyRow,
   getPromotions,
@@ -17,6 +18,7 @@ import {
   raceBack,
   raceFront,
   randomBackRow,
+  soliders,
   traitor,
 } from "./chess";
 import { ChessAI } from "./chess/chess-ai";
@@ -249,7 +251,7 @@ const antichess = new ChessController({
 const FONT_SIZE = 25;
 const PADDING = 10;
 
-const getCaptureStats = (controller: ChessController) => {
+const getCaptureStats = (controller: ChessController, allowed: PieceType[]) => {
   const selected = controller.getSelectedPiece();
   const drawables: Array<Drawable<PieceData>> = [];
   let row = 0;
@@ -267,35 +269,38 @@ const getCaptureStats = (controller: ChessController) => {
     });
     row++;
     Object.entries(captures[color]).forEach(([type, count]) => {
-      if (selected?.type === "crazy") {
-        const piece = selected.movement(controller)[0]?.destinations[0]?.piece;
+      if (allowed.includes(type as PieceType)) {
+        if (selected?.type === "crazy") {
+          const piece =
+            selected.movement(controller)[0]?.destinations[0]?.piece;
 
-        if (piece?.type === type && piece.color !== color) {
-          drawables.push({
-            type: "rect",
-            x,
-            y: PADDING + FONT_SIZE * row,
-            width: SIDEBAR - PADDING * 2,
-            height: FONT_SIZE,
-            fill: "rgba(0, 255, 0, .7)",
-          });
+          if (piece?.type === type && piece.color !== color) {
+            drawables.push({
+              type: "rect",
+              x,
+              y: PADDING + FONT_SIZE * row,
+              width: SIDEBAR - PADDING * 2,
+              height: FONT_SIZE,
+              fill: "rgba(0, 255, 0, .7)",
+            });
+          }
         }
+        drawables.push({
+          type: "text",
+          text: `${type} : ${count}`,
+          x,
+          y: PADDING + FONT_SIZE * row,
+          width: SIDEBAR - PADDING * 2,
+          height: FONT_SIZE,
+          fill: "black",
+          data: {
+            color,
+            count,
+            type: type as PieceType,
+          },
+        });
+        row++;
       }
-      drawables.push({
-        type: "text",
-        text: `${type} : ${count}`,
-        x,
-        y: PADDING + FONT_SIZE * row,
-        width: SIDEBAR - PADDING * 2,
-        height: FONT_SIZE,
-        fill: "black",
-        data: {
-          color,
-          count,
-          type: type as PieceType,
-        },
-      });
-      row++;
     });
     row++;
   }
@@ -309,22 +314,30 @@ const crazyHouse = new ChessController({
     context.textBaseline = "top";
     context.textAlign = "left";
     context.font = `${FONT_SIZE}px san-serif`;
-    getCaptureStats(this).forEach((stat) => {
-      context.fillStyle = stat.fill;
-      if (stat.type === "text") {
-        context.fillText(stat.text || "", stat.x, stat.y);
-      } else if (stat.type === "rect") {
-        context.fillRect(stat.x, stat.y, stat.width, stat.height);
+    getCaptureStats(this, ["pawn", "knight", "bishop", "queen"]).forEach(
+      (stat) => {
+        context.fillStyle = stat.fill;
+        if (stat.type === "text") {
+          context.fillText(stat.text || "", stat.x, stat.y);
+        } else if (stat.type === "rect") {
+          context.fillRect(stat.x, stat.y, stat.width, stat.height);
+        }
       }
-    });
+    );
   },
   onClick(x, y) {
-    const capturedPiece = getCaptureStats(this).find((capturedPiece) => {
+    const capturedPiece = getCaptureStats(this, [
+      "pawn",
+      "knight",
+      "bishop",
+      "queen",
+    ]).find((capturedPiece) => {
       return (
         x >= capturedPiece.x &&
         y >= capturedPiece.y &&
         x < capturedPiece.x + capturedPiece.width &&
-        y < capturedPiece.y + capturedPiece.height
+        y < capturedPiece.y + capturedPiece.height &&
+        capturedPiece.data?.count
       );
     });
     const { color, type } = capturedPiece?.data || {};
@@ -570,6 +583,92 @@ const checkless = new ChessController({
   },
 });
 
+const dragonfly = new ChessController({
+  name: "Dragonfly",
+  slug: "dragonfly",
+  rows: 7,
+  columns: 7,
+  getPromotions(color) {
+    return Object.entries(this.getCaptures()[color])
+      .filter((_, count) => count > 0)
+      .map(([key]) => pieceMap[key as PieceType](color));
+  },
+  newGame() {
+    return [
+      dragonFlyBackrow("dark"),
+      soliders("dark", 7),
+      emptyRow(7),
+      emptyRow(7),
+      emptyRow(7),
+      soliders("light", 7),
+      dragonFlyBackrow("light"),
+    ];
+  },
+  onDraw(context) {
+    context.textBaseline = "top";
+    context.textAlign = "left";
+    context.font = `${FONT_SIZE}px san-serif`;
+    getCaptureStats(this, ["knight", "bishop", "queen"]).forEach((stat) => {
+      context.fillStyle = stat.fill;
+      if (stat.type === "text") {
+        context.fillText(stat.text || "", stat.x, stat.y);
+      } else if (stat.type === "rect") {
+        context.fillRect(stat.x, stat.y, stat.width, stat.height);
+      }
+    });
+  },
+  onClick(x, y) {
+    const capturedPiece = getCaptureStats(this, [
+      "knight",
+      "bishop",
+      "queen",
+    ]).find((capturedPiece) => {
+      return (
+        x >= capturedPiece.x &&
+        y >= capturedPiece.y &&
+        x < capturedPiece.x + capturedPiece.width &&
+        y < capturedPiece.y + capturedPiece.height &&
+        capturedPiece.data?.count
+      );
+    });
+    const { color, type } = capturedPiece?.data || {};
+    if (type && color && color !== this.getTurn()) {
+      const piece = crazyPiece(pieceMap[type](this.getTurn()));
+      this.setSelectedPiece(piece);
+      return true;
+    }
+    return false;
+  },
+  executeMovement(movement) {
+    if (movement.isCrazy) {
+      const type = movement.destinations[0]?.piece.type;
+      if (type) {
+        this.getCaptures()[this.getTurn()][type]--;
+      }
+    }
+  },
+  removeIllegalMoves(movements) {
+    const promotions = this.getPromotions(this.getTurn());
+    const filtered = movements.filter((movement) => {
+      if (!this.isClone()) {
+        console.log("HERE");
+      }
+      movement.destinations = movement.destinations.filter((destination) => {
+        const { piece, row } = destination;
+        if (piece.type === "pawn")
+          if (row % 6 === 0) {
+            if (!promotions.length) {
+              return false;
+            }
+          }
+        return true;
+      });
+      return movement.destinations.length;
+    });
+    return filtered;
+  },
+});
+
 export const controllers = [
   vanilla,
   kingOfTheHill,
@@ -589,6 +688,7 @@ export const controllers = [
   gothic,
   traitorChess,
   checkless,
+  dragonfly,
 ];
 
 export const start = () => {

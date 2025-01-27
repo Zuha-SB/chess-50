@@ -268,7 +268,7 @@ export class ChessController {
         piece &&
         piece.type === "pawn" &&
         ((piece.row === 0 && piece.color === "light") ||
-          (piece.row === 7 && piece.color === "dark"))
+          (piece.row === this.getRows() - 1 && piece.color === "dark"))
     );
   }
   getPieces() {

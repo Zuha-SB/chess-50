@@ -55,9 +55,15 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 # TODO
 
 - Dragonfly
-- Knight mate
+- can only promote to captured pieces
+
 - Capablanca
+- Knight mate
 - Fix castling for gothic chess
+
+- Custom variant
+- Gamified chess
+- Gamifed chat
 
 - Move all peices chess
 - Moster chess?
