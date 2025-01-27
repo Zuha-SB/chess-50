@@ -443,16 +443,18 @@ const castle = (
     return [];
   }
   // SEE IF THE KING PASSES THROUGH AN ATTACK
-  const directionToTarget = getSign(kingDestination.column - king.column);
-  for (let column = king.column; ; column += directionToTarget) {
-    const attack = attacks.find(
-      (attack) => attack.column === column && attack.row === king.row
-    );
-    if (attack) {
-      return [];
-    }
-    if (column === kingDestination.column) {
-      break;
+  if (controller.hasCheck() === false) {
+    const directionToTarget = getSign(kingDestination.column - king.column);
+    for (let column = king.column; ; column += directionToTarget) {
+      const attack = attacks.find(
+        (attack) => attack.column === column && attack.row === king.row
+      );
+      if (attack) {
+        return [];
+      }
+      if (column === kingDestination.column) {
+        break;
+      }
     }
   }
   return [

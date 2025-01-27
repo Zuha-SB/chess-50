@@ -71,6 +71,9 @@ export class ChessController {
   getPromotions(color: ChessColor) {
     return this.config.getPromotions?.call(this, color) ?? getPromotions(color);
   }
+  hasCheck() {
+    return this.config.hasCheck;
+  }
   newGame() {
     this.getPromotions("light");
     this.getPromotions("dark");
