@@ -620,6 +620,7 @@ export const crazyPiece = (crazy: Piece): Piece => {
                   },
                 ],
                 captures: [],
+                isCrazy: true,
               };
         })
         .filter(filterNull);

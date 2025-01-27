@@ -314,6 +314,14 @@ const crazyHouse = new ChessController({
     }
     return false;
   },
+  executeMovement(movement) {
+    if (movement.isCrazy) {
+      const type = movement.destinations[0]?.piece.type;
+      if (type) {
+        this.getCaptures()[this.getTurn()][type]--;
+      }
+    }
+  },
 });
 
 export const controllers = [

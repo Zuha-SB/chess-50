@@ -27,6 +27,7 @@ export interface Movement {
   castle?: boolean;
   destinations: Array<CellPiece>;
   captures?: Array<Cell>;
+  isCrazy?: boolean;
 }
 
 export interface MovementConfig {
@@ -88,6 +89,7 @@ export interface ChessControllerConfig {
   newGame?: (this: ChessController) => Array<Array<Piece | null>>;
   getPromotions?: (this: ChessController, color: ChessColor) => Piece[];
   onClick?: (this: ChessController, x: number, y: number) => boolean;
+  executeMovement?: (this: ChessController, movement: Movement) => void;
 }
 
 export type ChessEventListener = () => void;

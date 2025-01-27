@@ -53,7 +53,6 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 # TODO
 
-- Decrement piece count
 - Keep track of promoted pieces
 
 - Crazy house

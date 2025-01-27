@@ -224,6 +224,7 @@ export class ChessController {
         this.board.checks[this.board.turn]++;
       }
     }
+    this.config.executeMovement?.call(this, movement);
     this.historyIndex++;
     this.history.splice(
       this.historyIndex,
