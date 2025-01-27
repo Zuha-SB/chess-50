@@ -8,6 +8,9 @@ export const SIDEBAR = TILE_SIZE * 2;
 export const WIDTH = TILE_SIZE * 8 + NOTATION_SIZE * 2 + SIDEBAR;
 export const HEIGHT = TILE_SIZE * 8 + NOTATION_SIZE * 2;
 // Files: Vertical columns labeled from "a" to "h" from left to right
-export const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
+const a = "a".charCodeAt(0);
+export const FILES = (length: number) =>
+  Array.from({ length }).map((_, index) => String.fromCharCode(a + index));
 // Ranks: Horizontal rows numbered from "1" to "8" from bottom to top.
-export const RANKS = ["8", "7", "6", "5", "4", "3", "2", "1"];
+export const RANKS = (length: number) =>
+  Array.from({ length }).map((_, index) => `${length - index}`);

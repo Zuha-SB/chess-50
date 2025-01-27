@@ -96,7 +96,7 @@ export class ChessView {
     this.context.font = `${NOTATION_SIZE / 2}px sans-serif`;
     this.context.textAlign = "center";
     this.context.textBaseline = "middle";
-    FILES.slice(0, this.controller.getColumns()).forEach((file, index) => {
+    FILES(this.controller.getColumns()).forEach((file, index) => {
       const x = NOTATION_SIZE + TILE_SIZE / 2 + index * TILE_SIZE;
       const y = NOTATION_SIZE / 2;
       this.context.fillText(file, x, y);
@@ -106,18 +106,16 @@ export class ChessView {
         y + NOTATION_SIZE + TILE_SIZE * this.controller.getRows()
       );
     });
-    RANKS.slice(RANKS.length - this.controller.getRows()).forEach(
-      (rank, index) => {
-        const x = NOTATION_SIZE / 2;
-        const y = NOTATION_SIZE + TILE_SIZE / 2 + index * TILE_SIZE;
-        this.context.fillText(
-          rank,
-          x + NOTATION_SIZE + TILE_SIZE * this.controller.getColumns(),
-          y
-        );
-        this.context.fillText(rank, x, y);
-      }
-    );
+    RANKS(this.controller.getRows()).forEach((rank, index) => {
+      const x = NOTATION_SIZE / 2;
+      const y = NOTATION_SIZE + TILE_SIZE / 2 + index * TILE_SIZE;
+      this.context.fillText(
+        rank,
+        x + NOTATION_SIZE + TILE_SIZE * this.controller.getColumns(),
+        y
+      );
+      this.context.fillText(rank, x, y);
+    });
   }
   private drawPieces() {
     this.controller.getPieces().forEach((piece) => {

@@ -63,6 +63,24 @@ const race = (piece: (color: ChessColor) => Piece) => [
 export const raceFront = () => race(king);
 export const raceBack = () => race(queen);
 
+const archbishop = (color: ChessColor) =>
+  piece({
+    color,
+    type: "archbishop",
+    movement(controller) {
+      return [...diagonal(controller, this, 7), ...lShape(this)];
+    },
+  });
+
+const chancellor = (color: ChessColor) =>
+  piece({
+    color,
+    type: "chancellor",
+    movement(controller) {
+      return [...horizontal(controller, this, 7), ...lShape(this)];
+    },
+  });
+
 export const backRow = (color: ChessColor) => [
   rook(color),
   knight(color),
@@ -74,8 +92,21 @@ export const backRow = (color: ChessColor) => [
   rook(color),
 ];
 
-export const pawns = (color: ChessColor) =>
-  Array.from({ length: 8 }).map(() => pawn(color));
+export const gothicBackRow = (color: ChessColor) => [
+  rook(color),
+  knight(color),
+  bishop(color),
+  queen(color),
+  chancellor(color),
+  king(color),
+  archbishop(color),
+  bishop(color),
+  knight(color),
+  rook(color),
+];
+
+export const pawns = (color: ChessColor, length: number = 8) =>
+  Array.from({ length }).map(() => pawn(color));
 
 export const hordePawns = (color: ChessColor) =>
   Array.from({ length: 8 }).map(() => hordePawn(color));
@@ -335,60 +366,64 @@ const longMovement = (
   return movement;
 };
 
+const lShape = (piece: Piece) => {
+  const movements: Movement[] = [];
+  for (const column of [1, 2]) {
+    const row = column === 1 ? 2 : 1;
+    movements.push({
+      column: piece.column + column,
+      row: piece.row + row,
+      destinations: [
+        {
+          column: piece.column + column,
+          row: piece.row + row,
+          piece: piece,
+        },
+      ],
+    });
+    movements.push({
+      column: piece.column - column,
+      row: piece.row + row,
+      destinations: [
+        {
+          column: piece.column - column,
+          row: piece.row + row,
+          piece: piece,
+        },
+      ],
+    });
+    movements.push({
+      column: piece.column + column,
+      row: piece.row - row,
+      destinations: [
+        {
+          column: piece.column + column,
+          row: piece.row - row,
+          piece: piece,
+        },
+      ],
+    });
+    movements.push({
+      column: piece.column - column,
+      row: piece.row - row,
+      destinations: [
+        {
+          column: piece.column - column,
+          row: piece.row - row,
+          piece: piece,
+        },
+      ],
+    });
+  }
+  return movements;
+};
+
 export const knight = (color: ChessColor) =>
   piece({
     color,
     type: "knight",
     movement() {
-      const movements: Movement[] = [];
-      for (const column of [1, 2]) {
-        const row = column === 1 ? 2 : 1;
-        movements.push({
-          column: this.column + column,
-          row: this.row + row,
-          destinations: [
-            {
-              column: this.column + column,
-              row: this.row + row,
-              piece: this,
-            },
-          ],
-        });
-        movements.push({
-          column: this.column - column,
-          row: this.row + row,
-          destinations: [
-            {
-              column: this.column - column,
-              row: this.row + row,
-              piece: this,
-            },
-          ],
-        });
-        movements.push({
-          column: this.column + column,
-          row: this.row - row,
-          destinations: [
-            {
-              column: this.column + column,
-              row: this.row - row,
-              piece: this,
-            },
-          ],
-        });
-        movements.push({
-          column: this.column - column,
-          row: this.row - row,
-          destinations: [
-            {
-              column: this.column - column,
-              row: this.row - row,
-              piece: this,
-            },
-          ],
-        });
-      }
-      return movements;
+      return lShape(this);
     },
   });
 
@@ -684,6 +719,8 @@ export const pieceMap: Record<PieceType, (color: ChessColor) => Piece> = {
   king,
   crazy: (color) => crazyPiece(pawn(color)),
   duck,
+  archbishop,
+  chancellor,
 };
 
 export const circePiece = (circe: Piece) => {

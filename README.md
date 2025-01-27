@@ -54,6 +54,8 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 # TODO
 
+- Gothic Chess
+- Identity Chess
 - Bug house
 - Tests
 - Show chess notation history

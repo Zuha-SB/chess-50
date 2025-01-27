@@ -7,6 +7,7 @@ import {
   duck,
   emptyRow,
   getPromotions,
+  gothicBackRow,
   hordePawns,
   king,
   pawn,
@@ -509,6 +510,24 @@ const progressive = new ChessController({
   },
 });
 
+const gothic = new ChessController({
+  name: "Gothic",
+  slug: "gothic",
+  columns: 10,
+  newGame() {
+    return [
+      gothicBackRow("dark"),
+      pawns("dark", 10),
+      emptyRow(10),
+      emptyRow(10),
+      emptyRow(10),
+      emptyRow(10),
+      pawns("light", 10),
+      gothicBackRow("light"),
+    ];
+  },
+});
+
 export const controllers = [
   vanilla,
   kingOfTheHill,
@@ -525,6 +544,7 @@ export const controllers = [
   circe,
   queens,
   progressive,
+  gothic,
 ];
 
 export const start = () => {
