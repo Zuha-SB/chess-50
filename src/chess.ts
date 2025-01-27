@@ -606,7 +606,7 @@ export const crazyPiece = (piece: Piece): Piece => {
     row: -1,
     image: new Image(),
     moves: -1,
-    type: "crazy",
+    type: "pawn",
     withColor() {
       return this;
     },
@@ -640,3 +640,12 @@ export const crazyPiece = (piece: Piece): Piece => {
 };
 
 const getSign = (input: number) => input / Math.abs(input);
+
+export const pieceMap: Record<PieceType, (color: ChessColor) => Piece> = {
+  bishop,
+  knight,
+  pawn,
+  queen,
+  rook,
+  king,
+};

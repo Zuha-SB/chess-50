@@ -8,8 +8,7 @@ export type PieceType =
   | "rook"
   | "bishop"
   | "knight"
-  | "pawn"
-  | "crazy";
+  | "pawn";
 
 export interface Cell {
   column: number;

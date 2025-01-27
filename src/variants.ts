@@ -9,6 +9,7 @@ import {
   king,
   pawn,
   pawns,
+  pieceMap,
   raceBack,
   raceFront,
   randomBackRow,
@@ -17,7 +18,13 @@ import { ChessAI } from "./chess/chess-ai";
 import { ChessController } from "./chess/chess-controller";
 import { ChessView } from "./chess/chess-view";
 import { HEIGHT, NOTATION_SIZE, SIDEBAR, TILE_SIZE, WIDTH } from "./constant";
-import type { Drawable, PieceData, PieceType } from "./types";
+import type {
+  ChessColor,
+  Drawable,
+  Piece,
+  PieceData,
+  PieceType,
+} from "./types";
 
 const vanilla = new ChessController({
   name: "Vanilla",
@@ -299,9 +306,9 @@ const crazyHouse = new ChessController({
         y < capturedPiece.y + capturedPiece.height
       );
     });
-    const color = capturedPiece?.data?.color;
-    if (color && color !== this.getTurn()) {
-      const piece = crazyPiece(pawn(this.getTurn()));
+    const { color, type } = capturedPiece?.data || {};
+    if (type && color && color !== this.getTurn()) {
+      const piece = crazyPiece(pieceMap[type](this.getTurn()));
       this.setSelectedPiece(piece);
       return true;
     }
