@@ -8,7 +8,8 @@ export type PieceType =
   | "rook"
   | "bishop"
   | "knight"
-  | "pawn";
+  | "pawn"
+  | "crazy";
 
 export interface Cell {
   column: number;
@@ -87,8 +88,26 @@ export interface ChessControllerConfig {
   getGameState?: (this: ChessController) => GameState;
   newGame?: (this: ChessController) => Array<Array<Piece | null>>;
   getPromotions?: (this: ChessController, color: ChessColor) => Piece[];
+  onClick?: (this: ChessController, x: number, y: number) => void;
 }
 
 export type ChessEventListener = () => void;
 
 export type ChessEventName = "afterMove";
+
+export interface PieceData {
+  type: PieceType;
+  color: ChessColor;
+  count: number;
+}
+
+export interface Drawable<T> {
+  type: "text";
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fill: string;
+  data?: T;
+}

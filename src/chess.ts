@@ -598,4 +598,43 @@ export const atomicPiece = (piece: Piece) => {
   return piece;
 };
 
+export const crazyPiece = (piece: Piece): Piece => {
+  return {
+    id: crypto.randomUUID(),
+    color: piece.color,
+    column: -1,
+    row: -1,
+    image: new Image(),
+    moves: -1,
+    type: "crazy",
+    withColor() {
+      return this;
+    },
+    movement(controller) {
+      // TODO : ADD AN EXTRA RULE FOR PAWNS
+      const movements = Array.from({ length: 64 })
+        .map((_, index): Movement | null => {
+          const row = Math.floor(index / 8);
+          const column = index % 8;
+          return controller.getPieceByCoordinates(row, column)
+            ? null
+            : {
+                column,
+                row,
+                destinations: [
+                  {
+                    column,
+                    row,
+                    piece,
+                  },
+                ],
+                captures: [],
+              };
+        })
+        .filter(filterNull);
+      return movements;
+    },
+  };
+};
+
 const getSign = (input: number) => input / Math.abs(input);

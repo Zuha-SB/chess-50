@@ -349,4 +349,7 @@ export class ChessController {
       this.config.removeIllegalMoves?.call(this, filtered, config) ?? filtered
     );
   }
+  onClick(x: number, y: number) {
+    this.config.onClick?.call(this, x, y);
+  }
 }

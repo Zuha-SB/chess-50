@@ -2,6 +2,7 @@ import cloneDeep from "clone-deep";
 import {
   atomicPiece,
   backRow,
+  crazyPiece,
   emptyRow,
   getPromotions,
   hordePawns,
@@ -15,7 +16,8 @@ import {
 import { ChessAI } from "./chess/chess-ai";
 import { ChessController } from "./chess/chess-controller";
 import { ChessView } from "./chess/chess-view";
-import { HEIGHT, NOTATION_SIZE, SIDEBAR, WIDTH } from "./constant";
+import { HEIGHT, NOTATION_SIZE, SIDEBAR, TILE_SIZE, WIDTH } from "./constant";
+import type { Drawable, PieceData, PieceType } from "./types";
 
 const vanilla = new ChessController({
   name: "Vanilla",
@@ -233,11 +235,78 @@ const antichess = new ChessController({
   },
 });
 
+const FONT_SIZE = 25;
+const PADDING = 10;
+
+const getCaptureStats = (controller: ChessController) => {
+  const drawables: Array<Drawable<PieceData>> = [];
+  let row = 0;
+  const captures = controller.getCaptures();
+  const x = PADDING + NOTATION_SIZE * 2 + TILE_SIZE * 8;
+  for (const color of ["dark", "light"] as const) {
+    drawables.push({
+      type: "text",
+      text: color,
+      x,
+      y: PADDING + FONT_SIZE * row,
+      width: SIDEBAR - PADDING * 2,
+      height: FONT_SIZE,
+      fill: "black",
+    });
+    row++;
+    Object.entries(captures[color]).forEach(([type, count]) => {
+      drawables.push({
+        type: "text",
+        text: `${type} : ${count}`,
+        x,
+        y: PADDING + FONT_SIZE * row,
+        width: SIDEBAR - PADDING * 2,
+        height: FONT_SIZE,
+        fill: "black",
+        data: {
+          color,
+          count,
+          type: type as PieceType,
+        },
+      });
+      row++;
+    });
+    row++;
+  }
+  return drawables;
+};
+
 const crazyHouse = new ChessController({
   name: "Crazy House",
   slug: "crazy",
-  onDraw() {},
-  onClick() {},
+  onDraw(context) {
+    context.textBaseline = "top";
+    context.textAlign = "left";
+    context.font = `${FONT_SIZE}px san-serif`;
+    getCaptureStats(this).forEach((stat) => {
+      if (stat.type === "text") {
+        context.fillStyle = stat.fill;
+        context.fillText(stat.text, stat.x, stat.y);
+      }
+    });
+  },
+  onClick(x, y) {
+    const capturedPiece = getCaptureStats(this).find((capturedPiece) => {
+      return (
+        x >= capturedPiece.x &&
+        y >= capturedPiece.y &&
+        x < capturedPiece.x + capturedPiece.width &&
+        y < capturedPiece.y + capturedPiece.height
+      );
+    });
+    const color = capturedPiece?.data?.color;
+    if (color && color !== this.getTurn()) {
+      console.log(capturedPiece);
+      const piece = crazyPiece(pawn(this.getTurn()));
+      this.setPieceByCoordinates(piece, 0, 8);
+      this.setSelectedPiece(piece);
+    }
+  },
 });
 
 export const controllers = [

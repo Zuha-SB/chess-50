@@ -27,6 +27,7 @@ export class ChessView {
     if (this.controller.getGameState() === "active") {
       const x = event.offsetX;
       const y = event.offsetY;
+      this.controller.onClick(x, y);
       if (x >= 0 && y >= 0) {
         const column = Math.floor((x - NOTATION_SIZE) / TILE_SIZE);
         const row = Math.floor((y - NOTATION_SIZE) / TILE_SIZE);
@@ -266,30 +267,6 @@ export class ChessView {
       }
     }
   }
-  drawCaptures() {
-    let row = 0;
-    const fontSize = 25;
-    const padding = 10;
-    this.context.textBaseline = "top";
-    this.context.textAlign = "left";
-    this.context.fillStyle = "black";
-    this.context.font = `${fontSize}px san-serif`;
-    const captures = this.controller.getCaptures();
-    const x = padding + NOTATION_SIZE * 2 + TILE_SIZE * 8;
-    for (const color of ["dark", "light"] as const) {
-      this.context.fillText(color, x, padding + fontSize * row);
-      row++;
-      Object.entries(captures[color]).forEach(([name, count]) => {
-        this.context.fillText(
-          `${name} : ${count}`,
-          x,
-          padding + fontSize * row
-        );
-        row++;
-      });
-      row++;
-    }
-  }
   draw() {
     this.context.clearRect(0, 0, WIDTH, HEIGHT);
     this.drawNotation();
@@ -299,9 +276,8 @@ export class ChessView {
     this.drawPieces();
     this.drawMovement();
     this.drawTurn();
-    this.drawCaptures();
-    this.drawPawnPromotion();
     this.controller.onDraw(this.context);
+    this.drawPawnPromotion();
     this.drawEndGame();
   }
   async main() {
