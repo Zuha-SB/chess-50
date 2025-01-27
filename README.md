@@ -55,6 +55,7 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 - Prevent pawns at edges
 - Allow placement of proper pieces
+- Decrement piece count
 
 - Crazy house
 - Duck Chess (https://www.chess.com/terms/duck-chess)

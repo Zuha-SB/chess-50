@@ -611,7 +611,6 @@ export const crazyPiece = (piece: Piece): Piece => {
       return this;
     },
     movement(controller) {
-      // TODO : ADD AN EXTRA RULE FOR PAWNS
       const movements = Array.from({ length: 64 })
         .map((_, index): Movement | null => {
           const row = Math.floor(index / 8);
@@ -632,7 +631,10 @@ export const crazyPiece = (piece: Piece): Piece => {
               };
         })
         .filter(filterNull);
-      return movements;
+
+      return piece.type === "pawn"
+        ? movements.filter((movement) => movement.row % 7 !== 0)
+        : movements;
     },
   };
 };
