@@ -105,6 +105,7 @@ const piece = ({
 }): Piece => {
   return {
     id: crypto.randomUUID(),
+    isPromoted: false,
     color,
     image: loadImage(`${color}_${type}.png`),
     movement(controller, config) {
@@ -559,7 +560,12 @@ export const shuffle = <T>(list: T[]) => {
 };
 
 export const getPromotions = (color: ChessColor) => {
-  return [knight(color), bishop(color), rook(color), queen(color)];
+  return [knight(color), bishop(color), rook(color), queen(color)].map(
+    (piece) => {
+      piece.isPromoted = true;
+      return piece;
+    }
+  );
 };
 
 export const atomicPiece = (piece: Piece) => {

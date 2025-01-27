@@ -53,9 +53,6 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 # TODO
 
-- Keep track of promoted pieces
-
-- Crazy house
 - Duck Chess (https://www.chess.com/terms/duck-chess)
 - Bug house
 - Tests

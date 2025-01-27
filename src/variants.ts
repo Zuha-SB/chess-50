@@ -238,7 +238,12 @@ const antichess = new ChessController({
     return movements.filter((movement) => !movement.castle);
   },
   getPromotions(color) {
-    return getPromotions(color).concat(king(color));
+    return getPromotions(color)
+      .concat(king(color))
+      .map((piece) => {
+        piece.isPromoted = true;
+        return piece;
+      });
   },
 });
 

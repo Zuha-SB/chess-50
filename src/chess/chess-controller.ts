@@ -200,8 +200,9 @@ export class ChessController {
     }
     const whoWasTaken = this.board.turn === "light" ? "dark" : "light";
     captures.forEach((capture) => {
+      const type = capture.isPromoted ? "pawn" : capture.type;
       const capturedPieces = this.board.capturedPieces[whoWasTaken];
-      capturedPieces[capture.type] = (capturedPieces[capture.type] ?? 0) + 1;
+      capturedPieces[type] = (capturedPieces[type] ?? 0) + 1;
     });
     movement.destinations.forEach((destination) => {
       const { piece, row, column } = destination;

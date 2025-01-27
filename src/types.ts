@@ -50,6 +50,7 @@ export interface Piece {
   row: number;
   moves: number;
   withColor(color: ChessColor): Piece;
+  isPromoted: boolean;
 }
 
 export interface BoardState {
