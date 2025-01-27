@@ -53,11 +53,13 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 # TODO
 
-- Track captured pieces
 - Drop in new pieces
 - Crazy house
+- Duck Chess (https://www.chess.com/terms/duck-chess)
 - Bug house
 - Tests
+- Show chess notation history
 - Save and load chess states
-- Online multiplayer
-- Connect to stock fish
+- Online multiplayer (Web Sockets)
+- Connect to stock fish (https://stockfish.online/)
+- Puzzles ? https://database.lichess.org/

@@ -22,6 +22,9 @@ export class ChessController {
   constructor(private config: ChessControllerConfig) {
     this.events = {};
     this.board = {
+      halfmoves: 0,
+      movesSinceCaptureOrPawn: 0,
+      wholemoves: 0,
       enPassantId: "",
       selectedId: "",
       tiles: [],
@@ -30,6 +33,10 @@ export class ChessController {
       checks: {
         light: 0,
         dark: 0,
+      },
+      capturedPieces: {
+        dark: {},
+        light: {},
       },
     };
     this.historyIndex = -1;
@@ -67,6 +74,13 @@ export class ChessController {
     this.getPromotions("light");
     this.getPromotions("dark");
     const board: BoardState = {
+      capturedPieces: {
+        dark: {},
+        light: {},
+      },
+      halfmoves: 0,
+      movesSinceCaptureOrPawn: 0,
+      wholemoves: 0,
       turns: 1,
       turn: "light",
       selectedId: "",
@@ -167,6 +181,29 @@ export class ChessController {
     this.board.turns--;
     this.board.enPassantId = movement.enPassant || "";
     this.board.selectedId = "";
+    const captures = [
+      ...(movement.captures || []).map((capture) =>
+        this.getPieceByCoordinates(capture.row, capture.column)
+      ),
+      ...(!movement.castle
+        ? movement.destinations.map((destination) =>
+            this.getPieceByCoordinates(destination.row, destination.column)
+          )
+        : []),
+    ].filter(filterNull);
+    const isPawn = movement.destinations.find(
+      (destination) => destination.piece.type === "pawn"
+    );
+    if (captures.length || isPawn) {
+      this.board.movesSinceCaptureOrPawn = 0;
+    } else {
+      this.board.movesSinceCaptureOrPawn++;
+    }
+    const whoWasTaken = this.board.turn === "light" ? "dark" : "light";
+    captures.forEach((capture) => {
+      const capturedPieces = this.board.capturedPieces[whoWasTaken];
+      capturedPieces[capture.type] = (capturedPieces[capture.type] ?? 0) + 1;
+    });
     movement.destinations.forEach((destination) => {
       const { piece, row, column } = destination;
       piece.moves++;
@@ -178,20 +215,6 @@ export class ChessController {
     movement.captures?.forEach((capture) => {
       this.board.tiles[capture.row]![capture.column] = null;
     });
-    const isCapture =
-      movement.captures?.length ||
-      (!movement.castle &&
-        movement.destinations.find((destination) =>
-          this.getPieceByCoordinates(destination.row, destination.column)
-        ));
-    const isPawn = movement.destinations.find(
-      (destination) => destination.piece.type === "pawn"
-    );
-    if (isCapture || isPawn) {
-      this.board.movesSinceCaptureOrPawn = 0;
-    } else {
-      this.board.movesSinceCaptureOrPawn++;
-    }
     this.board.halfmoves++;
     if (this.board.turns === 0) {
       this.board.wholemoves++;
@@ -209,6 +232,9 @@ export class ChessController {
       cloneDeep(this.board)
     );
     this.events.afterMove?.forEach((listener) => listener());
+  }
+  getCaptures() {
+    return this.board.capturedPieces;
   }
   getTurn() {
     return this.board.turn;

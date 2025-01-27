@@ -63,7 +63,13 @@ export interface BoardState {
   halfmoves: number;
   wholemoves: number;
   movesSinceCaptureOrPawn: number;
+  capturedPieces: {
+    light: ChessCaptures;
+    dark: ChessCaptures;
+  };
 }
+
+export type ChessCaptures = Partial<Record<PieceType, number>>;
 
 export type GameState = "active" | "light_wins" | "dark_wins" | "stalemate";
 
