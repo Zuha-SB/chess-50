@@ -191,48 +191,36 @@ export class ChessView {
     this.context.fill();
     this.context.stroke();
   }
-  private drawTurn() {
+  private drawCircleWithNumber(x: number, y: number) {
     this.context.strokeStyle = "black";
     this.context.fillStyle =
       this.controller.getTurn() === "light" ? LIGHT : DARK;
+    this.ellipse(x, y, NOTATION_SIZE / 4, NOTATION_SIZE / 4, 0, 0, 2 * Math.PI);
+    const turns = this.controller.getTurns();
+    if (turns > 1) {
+      this.context.textAlign = "center";
+      this.context.textBaseline = "middle";
+      this.context.fillStyle =
+        this.controller.getTurn() === "light" ? DARK : LIGHT;
+      this.context.fillText(`${turns}`, x, y);
+    }
+  }
+  private drawTurn() {
     const verticalGap = this.controller.getRows() * TILE_SIZE + NOTATION_SIZE;
     const horizontalGap =
       this.controller.getColumns() * TILE_SIZE + NOTATION_SIZE;
-    this.ellipse(
-      NOTATION_SIZE / 2,
-      NOTATION_SIZE / 2,
-      NOTATION_SIZE / 4,
-      NOTATION_SIZE / 4,
-      0,
-      0,
-      2 * Math.PI
-    );
-    this.ellipse(
+    this.drawCircleWithNumber(NOTATION_SIZE / 2, NOTATION_SIZE / 2);
+    this.drawCircleWithNumber(
       NOTATION_SIZE / 2 + horizontalGap,
-      NOTATION_SIZE / 2,
-      NOTATION_SIZE / 4,
-      NOTATION_SIZE / 4,
-      0,
-      0,
-      2 * Math.PI
+      NOTATION_SIZE / 2
     );
-    this.ellipse(
+    this.drawCircleWithNumber(
       NOTATION_SIZE / 2,
-      NOTATION_SIZE / 2 + verticalGap,
-      NOTATION_SIZE / 4,
-      NOTATION_SIZE / 4,
-      0,
-      0,
-      2 * Math.PI
+      NOTATION_SIZE / 2 + verticalGap
     );
-    this.ellipse(
+    this.drawCircleWithNumber(
       NOTATION_SIZE / 2 + horizontalGap,
-      NOTATION_SIZE / 2 + verticalGap,
-      NOTATION_SIZE / 4,
-      NOTATION_SIZE / 4,
-      0,
-      0,
-      2 * Math.PI
+      NOTATION_SIZE / 2 + verticalGap
     );
   }
   private drawPawnPromotion() {

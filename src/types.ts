@@ -81,7 +81,7 @@ export interface ChessControllerConfig {
   rows?: number;
   columns?: number;
   onDraw?: (this: ChessController, context: CanvasRenderingContext2D) => void;
-  turns?: number;
+  getTurns?: (this: ChessController, isNewGame: boolean) => number;
   name: string;
   slug: string;
   canLightFullyMove?: boolean;

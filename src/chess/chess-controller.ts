@@ -92,7 +92,9 @@ export class ChessController {
       halfmoves: 0,
       movesSinceCaptureOrPawn: 0,
       wholemoves: 0,
-      turns: this.config.canLightFullyMove ? this.config.turns ?? 1 : 1,
+      turns: this.config.canLightFullyMove
+        ? this.config.getTurns?.call(this, true) ?? 1
+        : 1,
       turn: "light",
       enPassantId: "",
       checks: {
@@ -239,7 +241,7 @@ export class ChessController {
     if (this.board.turns === 0) {
       this.board.wholemoves++;
       this.board.turn = this.board.turn === "light" ? "dark" : "light";
-      this.board.turns = this.config.turns || 1;
+      this.board.turns = this.config.getTurns?.call(this, false) || 1;
       const king = this.getCheckedKing(this.board.turn);
       if (king) {
         this.board.checks[this.board.turn]++;
@@ -305,6 +307,9 @@ export class ChessController {
     });
     controller.board = cloneDeep(this.board);
     return controller;
+  }
+  getWholeMoves() {
+    return this.board.wholemoves;
   }
   detectMissingKings() {
     const kings = this.getPieces().filter((piece) => piece?.type === "king");

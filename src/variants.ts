@@ -115,7 +115,7 @@ const atomicChess = new ChessController({
 const doubleMove = new ChessController({
   name: "Double Move Chess",
   slug: "double",
-  turns: 2,
+  getTurns: () => 2,
   getGameState() {
     return this.detectMissingKings();
   },
@@ -124,7 +124,7 @@ const doubleMove = new ChessController({
 const tripleMove = new ChessController({
   name: "Triple Move Chess",
   slug: "triple",
-  turns: 3,
+  getTurns: () => 3,
   getGameState() {
     return this.detectMissingKings();
   },
@@ -346,7 +346,7 @@ const crazyHouse = new ChessController({
 const duckChess = new ChessController({
   name: "Duck Chess",
   slug: "duck",
-  turns: 2,
+  getTurns: () => 2,
   canLightFullyMove: true,
   hasCheck: false,
   getSelectedPiece() {
@@ -498,6 +498,17 @@ const queens = new ChessController({
   },
 });
 
+const progressive = new ChessController({
+  name: "Progressive",
+  slug: "progressive",
+  getGameState() {
+    return this.detectMissingKings();
+  },
+  getTurns(newGame: boolean) {
+    return newGame ? 1 : this.getWholeMoves() + 1;
+  },
+});
+
 export const controllers = [
   vanilla,
   kingOfTheHill,
@@ -513,6 +524,7 @@ export const controllers = [
   duckChess,
   circe,
   queens,
+  progressive,
 ];
 
 export const start = () => {

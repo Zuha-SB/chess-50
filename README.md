@@ -49,6 +49,7 @@ Feel free to check [our documentation](https://docs.astro.build) or jump into ou
 
 # Chess Assets
 
+https://opengameart.org/content/cute-duck-animated-set
 https://opengameart.org/content/chess-pieces-and-board-squares
 
 # TODO
