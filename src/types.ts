@@ -53,6 +53,7 @@ export interface Piece {
   row: number;
   moves: number;
   withColor(color: ChessColor): Piece;
+  withType(type: PieceType): Piece;
   isPromoted: boolean;
 }
 

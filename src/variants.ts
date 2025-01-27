@@ -1,6 +1,6 @@
 import cloneDeep from "clone-deep";
 import {
-  atomicPiece,
+  atomic,
   backRow,
   circePiece,
   crazyPiece,
@@ -17,6 +17,7 @@ import {
   raceBack,
   raceFront,
   randomBackRow,
+  traitor,
 } from "./chess";
 import { ChessAI } from "./chess/chess-ai";
 import { ChessController } from "./chess/chess-controller";
@@ -95,18 +96,18 @@ const atomicChess = new ChessController({
   slug: "atomic",
   newGame() {
     return [
-      backRow("dark").map(atomicPiece),
-      pawns("dark").map(atomicPiece),
+      backRow("dark").map(atomic),
+      pawns("dark").map(atomic),
       emptyRow(),
       emptyRow(),
       emptyRow(),
       emptyRow(),
-      pawns("light").map(atomicPiece),
-      backRow("light").map(atomicPiece),
+      pawns("light").map(atomic),
+      backRow("light").map(atomic),
     ];
   },
   getPromotions(color) {
-    return getPromotions(color).map(atomicPiece);
+    return getPromotions(color).map(atomic);
   },
   getGameState() {
     return this.detectMissingKings();
@@ -528,6 +529,23 @@ const gothic = new ChessController({
   },
 });
 
+const traitorChess = new ChessController({
+  name: "Traitor",
+  slug: "traitor",
+  newGame() {
+    return [
+      backRow("dark"),
+      pawns("dark").map(traitor),
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      emptyRow(),
+      pawns("light").map(traitor),
+      backRow("light"),
+    ];
+  },
+});
+
 export const controllers = [
   vanilla,
   kingOfTheHill,
@@ -545,6 +563,7 @@ export const controllers = [
   queens,
   progressive,
   gothic,
+  traitorChess,
 ];
 
 export const start = () => {

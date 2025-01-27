@@ -190,9 +190,6 @@ export class ChessController {
       );
   }
   executeMovement(movement: Movement) {
-    if (!this.isClone()) {
-      console.log("Executing movement");
-    }
     this.board.turns--;
     this.board.enPassantId = movement.enPassant || "";
     this.selectedPiece = null;

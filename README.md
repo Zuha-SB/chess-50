@@ -54,8 +54,9 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 # TODO
 
-- Gothic Chess
 - Identity Chess
+- Move all peices chess
+- Moster chess?
 - Bug house
 - Tests
 - Show chess notation history
