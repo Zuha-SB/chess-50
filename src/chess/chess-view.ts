@@ -27,7 +27,9 @@ export class ChessView {
     if (this.controller.getGameState() === "active") {
       const x = event.offsetX;
       const y = event.offsetY;
-      this.controller.onClick(x, y);
+      if (this.controller.onClick(x, y)) {
+        return this.draw();
+      }
       if (x >= 0 && y >= 0) {
         const column = Math.floor((x - NOTATION_SIZE) / TILE_SIZE);
         const row = Math.floor((y - NOTATION_SIZE) / TILE_SIZE);

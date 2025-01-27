@@ -55,7 +55,6 @@ export interface BoardState {
   tiles: Array<Array<Piece | null>>;
   enPassantId: string;
   turn: ChessColor;
-  selectedId: string;
   turns: number;
   checks: {
     light: number;
@@ -88,7 +87,7 @@ export interface ChessControllerConfig {
   getGameState?: (this: ChessController) => GameState;
   newGame?: (this: ChessController) => Array<Array<Piece | null>>;
   getPromotions?: (this: ChessController, color: ChessColor) => Piece[];
-  onClick?: (this: ChessController, x: number, y: number) => void;
+  onClick?: (this: ChessController, x: number, y: number) => boolean;
 }
 
 export type ChessEventListener = () => void;

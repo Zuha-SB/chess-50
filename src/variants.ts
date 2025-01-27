@@ -301,11 +301,11 @@ const crazyHouse = new ChessController({
     });
     const color = capturedPiece?.data?.color;
     if (color && color !== this.getTurn()) {
-      console.log(capturedPiece);
       const piece = crazyPiece(pawn(this.getTurn()));
-      this.setPieceByCoordinates(piece, 0, 8);
       this.setSelectedPiece(piece);
+      return true;
     }
+    return false;
   },
 });
 

@@ -53,7 +53,9 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 # TODO
 
-- Drop in new pieces
+- Prevent pawns at edges
+- Allow placement of proper pieces
+
 - Crazy house
 - Duck Chess (https://www.chess.com/terms/duck-chess)
 - Bug house

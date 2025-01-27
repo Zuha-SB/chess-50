@@ -19,6 +19,7 @@ export class ChessController {
   private board: BoardState;
   private history: Array<BoardState>;
   private historyIndex: number;
+  private selectedPiece: Piece | null = null;
   constructor(private config: ChessControllerConfig) {
     this.events = {};
     this.board = {
@@ -26,7 +27,6 @@ export class ChessController {
       movesSinceCaptureOrPawn: 0,
       wholemoves: 0,
       enPassantId: "",
-      selectedId: "",
       tiles: [],
       turn: "light",
       turns: 1,
@@ -83,7 +83,6 @@ export class ChessController {
       wholemoves: 0,
       turns: 1,
       turn: "light",
-      selectedId: "",
       enPassantId: "",
       checks: {
         light: 0,
@@ -180,7 +179,7 @@ export class ChessController {
   executeMovement(movement: Movement) {
     this.board.turns--;
     this.board.enPassantId = movement.enPassant || "";
-    this.board.selectedId = "";
+    this.selectedPiece = null;
     const captures = [
       ...(movement.captures || []).map((capture) =>
         this.getPieceByCoordinates(capture.row, capture.column)
@@ -258,7 +257,7 @@ export class ChessController {
     return this.getPieces().find((piece) => piece.id === id);
   }
   getSelectedPiece() {
-    return this.getPieceById(this.board.selectedId);
+    return this.selectedPiece;
   }
   getEnPassantId() {
     return this.board.enPassantId;
@@ -269,11 +268,11 @@ export class ChessController {
     promotion.row = pawn.row;
   }
   setSelectedPiece(piece: Piece | null) {
-    this.board.selectedId = "";
+    this.selectedPiece = null;
     if (piece?.color === this.board.turn) {
       const movement = piece.movement(this);
       if (movement.length) {
-        this.board.selectedId = piece.id;
+        this.selectedPiece = piece;
       }
     }
   }
@@ -349,7 +348,7 @@ export class ChessController {
       this.config.removeIllegalMoves?.call(this, filtered, config) ?? filtered
     );
   }
-  onClick(x: number, y: number) {
-    this.config.onClick?.call(this, x, y);
+  onClick(x: number, y: number): boolean {
+    return this.config.onClick?.call(this, x, y) === true;
   }
 }
