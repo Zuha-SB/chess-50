@@ -53,6 +53,12 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 # TODO
 
+- End game on too many moves (50 moves)
+- Track captured pieces
+- Drop in new pieces
+- Crazy house
+- Bug house
 - Tests
 - Save and load chess states
 - Online multiplayer
+- Connect to stock fish
