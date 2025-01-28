@@ -342,13 +342,7 @@ export const rook = (color: ChessColor) =>
     color,
     type: "rook",
     movement(controller) {
-      const breaksQueenSideCastle = this.column === 0 && this.row % 7 === 0;
-      const breaksKingSideCastle = this.column === 7 && this.row % 7 === 0;
-      return horizontal(controller, this, 7).map((movement) => ({
-        ...movement,
-        breaksQueenSideCastle,
-        breaksKingSideCastle,
-      }));
+      return horizontal(controller, this, 7);
     },
   });
 
@@ -480,7 +474,7 @@ const castle = (
   let rook;
   for (
     let column = king.column + direction;
-    0 <= column && column < 8;
+    0 <= column && column < controller.getColumns();
     column += direction
   ) {
     const blocker = controller.getPieceByCoordinates(king.row, column);
