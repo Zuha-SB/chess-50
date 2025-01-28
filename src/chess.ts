@@ -105,6 +105,19 @@ export const gothicBackRow = (color: ChessColor) => [
   rook(color),
 ];
 
+export const capablancaBackRow = (color: ChessColor) => [
+  rook(color),
+  knight(color),
+  archbishop(color),
+  bishop(color),
+  queen(color),
+  king(color),
+  bishop(color),
+  chancellor(color),
+  knight(color),
+  rook(color),
+];
+
 export const pawns = (color: ChessColor, length: number = 8) =>
   Array.from({ length }).map(() => pawn(color));
 
@@ -551,11 +564,11 @@ export const king = (color: ChessColor) =>
             this,
             {
               row: this.row,
-              column: 2,
+              column: controller.getCastleFromTheLeft(),
             },
             {
               row: this.row,
-              column: 3,
+              column: controller.getCastleFromTheLeft() + 1,
             }
           )
         );
@@ -568,11 +581,17 @@ export const king = (color: ChessColor) =>
             this,
             {
               row: this.row,
-              column: 6,
+              column:
+                controller.getColumns() -
+                controller.getCastleFromTheRight() -
+                1,
             },
             {
               row: this.row,
-              column: 5,
+              column:
+                controller.getColumns() -
+                controller.getCastleFromTheRight() -
+                2,
             }
           )
         );

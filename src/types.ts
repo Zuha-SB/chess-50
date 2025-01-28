@@ -81,6 +81,8 @@ export type ChessCaptures = Partial<Record<PieceType, number>>;
 export type GameState = "active" | "light_wins" | "dark_wins" | "stalemate";
 
 export interface ChessControllerConfig {
+  castleFromTheLeft?: number;
+  castleFromTheRight?: number;
   rows?: number;
   columns?: number;
   onDraw?: (this: ChessController, context: CanvasRenderingContext2D) => void;
@@ -102,9 +104,13 @@ export interface ChessControllerConfig {
   executeMovement?: (this: ChessController, movement: Movement) => void;
 }
 
-export type ChessEventListener = () => void;
+interface ChessEvent {
+  promotion?: Piece;
+}
 
-export type ChessEventName = "afterMove";
+export type ChessEventListener = (event?: ChessEvent) => void;
+
+export type ChessEventName = "afterMove" | "promote";
 
 export interface PieceData {
   type: PieceType;

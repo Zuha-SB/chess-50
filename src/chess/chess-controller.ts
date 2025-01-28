@@ -43,6 +43,12 @@ export class ChessController {
     this.historyIndex = -1;
     this.history = [];
   }
+  getCastleFromTheLeft() {
+    return this.config.castleFromTheLeft ?? 2;
+  }
+  getCastleFromTheRight() {
+    return this.config.castleFromTheRight ?? 1;
+  }
   getRows() {
     return this.config.rows || 8;
   }
@@ -287,6 +293,11 @@ export class ChessController {
     this.board.tiles[pawn.row]![pawn.column] = promotion;
     promotion.column = pawn.column;
     promotion.row = pawn.row;
+    this.events.promote?.forEach((listener) =>
+      listener({
+        promotion,
+      })
+    );
   }
   setSelectedPiece(piece: Piece | null) {
     this.selectedPiece = null;

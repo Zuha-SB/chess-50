@@ -2,6 +2,7 @@ import cloneDeep from "clone-deep";
 import {
   atomic,
   backRow,
+  capablancaBackRow,
   circePiece,
   crazyPiece,
   dragonFlyBackrow,
@@ -588,9 +589,14 @@ const dragonfly = new ChessController({
   slug: "dragonfly",
   rows: 7,
   columns: 7,
+  castleFromTheLeft: 1,
   getPromotions(color) {
-    return Object.entries(this.getCaptures()[color])
-      .filter((_, count) => count > 0)
+    const opposite = color == "dark" ? "light" : "dark";
+    return Object.entries(this.getCaptures()[opposite])
+      .filter(
+        ([type, count]) =>
+          count > 0 && ["knight", "bishop", "rook", "queen"].includes(type)
+      )
       .map(([key]) => pieceMap[key as PieceType](color));
   },
   newGame() {
@@ -621,6 +627,7 @@ const dragonfly = new ChessController({
     const capturedPiece = getCaptureStats(this, [
       "knight",
       "bishop",
+      "rook",
       "queen",
     ]).find((capturedPiece) => {
       return (
@@ -648,15 +655,12 @@ const dragonfly = new ChessController({
     }
   },
   removeIllegalMoves(movements) {
-    const promotions = this.getPromotions(this.getTurn());
     const filtered = movements.filter((movement) => {
-      if (!this.isClone()) {
-        console.log("HERE");
-      }
       movement.destinations = movement.destinations.filter((destination) => {
         const { piece, row } = destination;
         if (piece.type === "pawn")
           if (row % 6 === 0) {
+            const promotions = this.getPromotions(piece.color);
             if (!promotions.length) {
               return false;
             }
@@ -666,6 +670,30 @@ const dragonfly = new ChessController({
       return movement.destinations.length;
     });
     return filtered;
+  },
+});
+dragonfly.addEventListener("promote", (e) => {
+  const piece = e?.promotion;
+  if (piece) {
+    dragonfly.getCaptures()[dragonfly.getTurn()][piece.type]--;
+  }
+});
+
+const capablanca = new ChessController({
+  name: "Capablanca",
+  slug: "capablanca",
+  columns: 10,
+  newGame() {
+    return [
+      capablancaBackRow("dark"),
+      pawns("dark", 10),
+      emptyRow(10),
+      emptyRow(10),
+      emptyRow(10),
+      emptyRow(10),
+      pawns("light", 10),
+      capablancaBackRow("light"),
+    ];
   },
 });
 
@@ -689,6 +717,7 @@ export const controllers = [
   traitorChess,
   checkless,
   dragonfly,
+  capablanca,
 ];
 
 export const start = () => {
