@@ -185,7 +185,7 @@ export const pawn = (
   canMove2: (this: Piece, controller: ChessController) => boolean = function (
     controller
   ) {
-    return this.column % (controller.getRows() - 2) === 0;
+    return (this.row - 1) % (controller.getRows() - 3) === 0;
   }
 ) =>
   piece({

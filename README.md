@@ -67,3 +67,11 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 - Online multiplayer (Web Sockets)
 - Connect to stock fish (https://stockfish.online/)
 - Puzzles ? https://database.lichess.org/
+
+Coding Every Variant of Chess I Can Find (Capablanca Chess 20 / 50)
+
+Scouring the webs for different ways to play chess then writing the code for it.
+
+Vercel: https://chess-50.vercel.app/
+
+Github: https://github.com/nagolyhprum/chess-50
