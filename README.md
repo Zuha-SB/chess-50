@@ -51,14 +51,22 @@ Feel free to check [our documentation](https://docs.astro.build) or jump into ou
 
 https://opengameart.org/content/cute-duck-animated-set
 https://opengameart.org/content/chess-pieces-and-board-squares
+https://opengameart.org/content/100-cc0-sfx - plop
 
 # TODO
 
-- Display last move indicator
+- Promotion
 - Display chess notation (move history)
-- Add sound effects
 - Display analysis
+- Timer
 - Web sockets
+
+App Idea
+
+- Play a game - use a tactic
+
+  - if you lose you learn more about the tactic
+  - if you win you learn less about the tactic
 
 - Knight mate
 - Custom variant
@@ -73,6 +81,7 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 - Online multiplayer (Web Sockets)
 - Connect to stock fish (https://stockfish.online/)
 - Puzzles ? https://database.lichess.org/
+- 4 Players
 
 Coding Every Variant of Chess I Can Find (Capablanca Chess 20 / 50)
 

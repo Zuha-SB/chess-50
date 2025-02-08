@@ -91,6 +91,30 @@ export class ChessView {
       }
     }
   }
+  private drawLastMove() {
+    const lastMovement = this.controller.getLastMovement();
+    if (
+      lastMovement.from.row !== -1 &&
+      lastMovement.from.column !== -1 &&
+      lastMovement.to.row !== -1 &&
+      lastMovement.to.column !== -1
+    ) {
+      this.context.rect(
+        NOTATION_SIZE + TILE_SIZE * lastMovement.from.column,
+        NOTATION_SIZE + TILE_SIZE * lastMovement.from.row,
+        TILE_SIZE,
+        TILE_SIZE
+      );
+      this.context.rect(
+        NOTATION_SIZE + TILE_SIZE * lastMovement.to.column,
+        NOTATION_SIZE + TILE_SIZE * lastMovement.to.row,
+        TILE_SIZE,
+        TILE_SIZE
+      );
+      this.context.fillStyle = "rgba(126, 126, 255, .7)";
+      this.context.fill();
+    }
+  }
   private drawNotation() {
     this.context.fillStyle = DARK;
     this.context.font = `${NOTATION_SIZE / 2}px sans-serif`;
@@ -279,6 +303,7 @@ export class ChessView {
     this.context.clearRect(0, 0, WIDTH, HEIGHT);
     this.drawNotation();
     this.drawTiles();
+    this.drawLastMove();
     this.drawSelected();
     this.drawCheck();
     this.drawPieces();

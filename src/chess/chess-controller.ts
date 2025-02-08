@@ -15,12 +15,23 @@ import cloneDeep from "clone-deep";
 
 const CLONE = "CLONE" as const;
 
+const audio = (src: string) => {
+  if (typeof document !== "undefined") {
+    return new Audio(src);
+  }
+};
+
+const move = audio("/public/move.mp3");
+const capture = audio("/public/capture.wav");
+const check = audio("/public/check.mp3");
+const checkmate = audio("/public/checkmate.wav");
+
 export class ChessController {
   private events: Partial<Record<ChessEventName, ChessEventListener[]>>;
   private board: BoardState;
   private history: Array<BoardState>;
   private historyIndex: number;
-  private selectedPiece: Piece | null = null;
+  private selectedPiece: Piece | null;
   constructor(private config: ChessControllerConfig) {
     this.events = {};
     this.board = {
@@ -40,9 +51,14 @@ export class ChessController {
         light: {},
         neutral: {},
       },
+      lastMovement: {
+        from: { column: -1, row: -1 },
+        to: { column: -1, row: -1 },
+      },
     };
     this.historyIndex = -1;
     this.history = [];
+    this.selectedPiece = null;
   }
   getCastleFromTheLeft() {
     return this.config.castleFromTheLeft ?? 2;
@@ -118,6 +134,16 @@ export class ChessController {
         pawns("light"),
         backRow("light"),
       ],
+      lastMovement: {
+        from: {
+          row: -1,
+          column: -1,
+        },
+        to: {
+          row: -1,
+          column: -1,
+        },
+      },
     };
     board.tiles.forEach((row, rowIndex) => {
       row.forEach((piece, columnIndex) => {
@@ -338,6 +364,12 @@ export class ChessController {
       const capturedPieces = this.board.capturedPieces[whoWasTaken];
       capturedPieces[type] = (capturedPieces[type] ?? 0) + 1;
     });
+    let captured = false;
+    const lastMovement = this.board.lastMovement;
+    lastMovement.from.row = movement.destinations[0]?.piece.row ?? -1;
+    lastMovement.from.column = movement.destinations[0]?.piece.column ?? -1;
+    lastMovement.to.row = movement.row;
+    lastMovement.to.column = movement.column;
     movement.destinations.forEach((destination) => {
       const { piece, row, column } = destination;
       piece.moves++;
@@ -347,6 +379,9 @@ export class ChessController {
       }
       const toRow = this.board.tiles[row];
       if (toRow) {
+        if (toRow[column]) {
+          captured = true;
+        }
         toRow[column] = piece;
       }
       piece.row = row;
@@ -355,6 +390,7 @@ export class ChessController {
     movement.captures?.forEach((capture) => {
       this.board.tiles[capture.row]![capture.column] = null;
     });
+
     this.board.halfmoves++;
     if (this.board.turns === 0) {
       this.board.wholemoves++;
@@ -366,6 +402,23 @@ export class ChessController {
       }
     }
     this.config.executeMovement?.call(this, movement);
+
+    if (!this.isClone()) {
+      const checkedKing = this.getCheckedKing(this.board.turn);
+      if (checkedKing) {
+        const state = this.getGameState();
+        if (state === "dark_wins" || state === "light_wins") {
+          checkmate?.play();
+        } else {
+          check?.play();
+        }
+      } else if (captured || movement.captures?.length) {
+        capture?.play();
+      } else {
+        move?.play();
+      }
+    }
+
     this.historyIndex++;
     this.history.splice(
       this.historyIndex,
@@ -373,6 +426,9 @@ export class ChessController {
       cloneDeep(this.board)
     );
     this.events.afterMove?.forEach((listener) => listener());
+  }
+  getLastMovement() {
+    return this.board.lastMovement;
   }
   getCaptures() {
     return this.board.capturedPieces;

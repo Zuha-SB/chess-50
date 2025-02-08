@@ -74,6 +74,7 @@ export interface BoardState {
     dark: ChessCaptures;
     neutral: ChessCaptures;
   };
+  lastMovement: LastMovement;
 }
 
 export type ChessCaptures = Partial<Record<PieceType, number>>;
@@ -135,4 +136,9 @@ export interface StockfishResponse {
   evaluation: number;
   mate: string;
   success: boolean;
+}
+
+export interface LastMovement {
+  from: Cell;
+  to: Cell;
 }

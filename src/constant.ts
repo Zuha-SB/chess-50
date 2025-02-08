@@ -1,6 +1,6 @@
 // CONSTANTS
-export const DARK = "black" as const;
-export const LIGHT = "white" as const;
+export const DARK = "#739552" as const;
+export const LIGHT = "#ebecd0" as const;
 export const TILE_SIZE = 70;
 export const NOTATION_SIZE = TILE_SIZE / 2;
 export const PIECE_PADDING = TILE_SIZE / 4;
