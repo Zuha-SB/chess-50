@@ -474,6 +474,7 @@ export class ChessController {
     this.board.tiles[pawn.row]![pawn.column] = promotion;
     promotion.column = pawn.column;
     promotion.row = pawn.row;
+    promotion.moves = 1;
     this.events.promote?.forEach((listener) =>
       listener({
         promotion,
