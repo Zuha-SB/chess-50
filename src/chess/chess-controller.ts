@@ -195,6 +195,109 @@ export class ChessController {
           .flatMap((movement) => movement.destinations)
       );
   }
+  private getPieceTypeFen(type: string, color: ChessColor): string {
+    let letter = "";
+    switch (type) {
+      case "king":
+        letter = "k";
+        break;
+      case "queen":
+        letter = "q";
+        break;
+      case "rook":
+        letter = "r";
+        break;
+      case "bishop":
+        letter = "b";
+        break;
+      case "knight":
+        letter = "n";
+        break;
+      case "pawn":
+        letter = "p";
+        break;
+    }
+    letter = color === "light" ? letter.toUpperCase() : letter;
+    return letter;
+  }
+  generateFEN(): string {
+    if (!this.board?.tiles) return "";
+    let fen = "";
+    let emptySpaceCounter = 0;
+    for (let i = 0; i < this.getRows(); i++) {
+      for (let j = 0; j < this.getColumns(); j++) {
+        const piece = this.board.tiles[i]?.[j];
+        if (piece) {
+          if (emptySpaceCounter !== 0) {
+            fen += emptySpaceCounter.toString();
+            emptySpaceCounter = 0;
+          }
+          fen += this.getPieceTypeFen(piece.type, piece.color);
+        } else {
+          emptySpaceCounter++;
+        }
+      }
+      if (emptySpaceCounter !== 0) {
+        fen += emptySpaceCounter.toString();
+        emptySpaceCounter = 0;
+      }
+      if (i !== 7) fen += "/";
+    }
+    const turnLetter = this.board.turn === "light" ? "w" : "b";
+    fen += ` ${turnLetter} `;
+    let castlingString = "";
+    const lightKing = this.getPieces().find(
+      (piece) => piece.type === "king" && piece.color === "light"
+    );
+    const darkKing = this.getPieces().find(
+      (piece) => piece.type === "king" && piece.color === "dark"
+    );
+    if (lightKing) {
+      const lightKingRook = this.getPieces().find(
+        (piece) =>
+          piece.type === "rook" &&
+          piece.color === "light" &&
+          piece.column > lightKing.column &&
+          piece.moves === 0
+      );
+      const lightQueenRook = this.getPieces().find(
+        (piece) =>
+          piece.type === "rook" &&
+          piece.color === "light" &&
+          piece.column < lightKing.column &&
+          piece.moves === 0
+      );
+      castlingString += lightKingRook ? "K" : "";
+      castlingString += lightQueenRook ? "Q" : "";
+    }
+    if (darkKing) {
+      const darkKingRook = this.getPieces().find(
+        (piece) =>
+          piece.type === "rook" &&
+          piece.color === "dark" &&
+          piece.column > darkKing.column &&
+          piece.moves === 0
+      );
+      const darkQueenRook = this.getPieces().find(
+        (piece) =>
+          piece.type === "rook" &&
+          piece.color === "dark" &&
+          piece.column < darkKing.column &&
+          piece.moves === 0
+      );
+      castlingString += darkKingRook ? "k" : "";
+      castlingString += darkQueenRook ? "q" : "";
+    }
+    fen += castlingString || "-";
+    // To-Do: If a pawn has just made a two-square move, add en passant square
+    fen += " - ";
+    let movesSinceCaptureOrPawn = this.board.movesSinceCaptureOrPawn - 1;
+    if (movesSinceCaptureOrPawn < 0) movesSinceCaptureOrPawn = 0;
+    fen += `${movesSinceCaptureOrPawn} ${
+      Math.floor((this.board.wholemoves - 1) / 2) + 1
+    }`;
+    return fen;
+  }
   executeMovement(movement: Movement) {
     this.board.turns--;
     this.board.enPassantId = movement.enPassant || "";
