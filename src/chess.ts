@@ -690,10 +690,7 @@ export const crazyPiece = (crazy: Piece): Piece => {
                   {
                     column,
                     row,
-                    piece: {
-                      ...crazy,
-                      moves: 1,
-                    },
+                    piece: crazy,
                   },
                 ],
                 captures: [],
