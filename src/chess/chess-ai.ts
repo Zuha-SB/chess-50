@@ -6,7 +6,7 @@ export class ChessAI {
   private color: ChessColor | null | undefined;
   private configName: string = "";
   constructor(private controller: ChessController) {
-    this.configName = controller.getConfigName();
+    this.configName = controller.getName();
     controller.addEventListener("afterMove", () => {
       if (this.isStarted) {
         this.configName === "Vanilla"
@@ -60,17 +60,14 @@ export class ChessAI {
       console.error("No piece found at col, row:", fromCol, fromRow);
       return null;
     }
-    return {
-      column: this.parseCol(toCol),
-      row: this.parseRow(toRow),
-      destinations: [
-        {
-          column: this.parseCol(toCol),
-          row: this.parseRow(toRow),
-          piece,
-        },
-      ],
-    };
+    return (
+      piece.movement(this.controller).find((movement) => {
+        return (
+          movement.column === this.parseCol(toCol) &&
+          movement.row === this.parseRow(toRow)
+        );
+      }) || null
+    );
   }
   private async executeStockfishMove(): Promise<void> {
     if (this.controller.getTurn() !== this.color) return;

@@ -43,9 +43,6 @@ export class ChessController {
     this.historyIndex = -1;
     this.history = [];
   }
-  getConfigName() {
-    return this.config.name;
-  }
   getCastleFromTheLeft() {
     return this.config.castleFromTheLeft ?? 2;
   }
