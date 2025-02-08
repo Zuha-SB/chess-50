@@ -54,6 +54,12 @@ https://opengameart.org/content/chess-pieces-and-board-squares
 
 # TODO
 
+- Display last move indicator
+- Display chess notation (move history)
+- Add sound effects
+- Display analysis
+- Web sockets
+
 - Knight mate
 - Custom variant
 - Gamified chess
@@ -75,3 +81,8 @@ Scouring the webs for different ways to play chess then writing the code for it.
 Vercel: https://chess-50.vercel.app/
 
 Github: https://github.com/nagolyhprum/chess-50
+
+Contributors:
+
+- Logan Murphy (https://www.youtube.com/@hacking-into-coding | https://www.twitch.tv/hackingintocoding)
+- Zuha

@@ -1,4 +1,5 @@
 import { backRow, emptyRow, filterNull, getPromotions, pawns } from "../chess";
+import { FILES, RANKS } from "../constant";
 import type {
   BoardState,
   ChessColor,
@@ -87,8 +88,8 @@ export class ChessController {
     return this.config.hasCheck;
   }
   newGame() {
-    this.getPromotions("light");
-    this.getPromotions("dark");
+    // this.getPromotions("light");
+    // this.getPromotions("dark");
     const board: BoardState = {
       capturedPieces: {
         dark: {},
@@ -129,6 +130,7 @@ export class ChessController {
     this.board = board;
     this.historyIndex = 0;
     this.history = [cloneDeep(this.board)];
+    this.selectedPiece = null;
     return board;
   }
   async waitForReady() {
@@ -222,6 +224,7 @@ export class ChessController {
   }
   generateFEN(): string {
     if (!this.board?.tiles) return "";
+    const pieces = this.getPieces();
     let fen = "";
     let emptySpaceCounter = 0;
     for (let i = 0; i < this.getRows(); i++) {
@@ -246,21 +249,21 @@ export class ChessController {
     const turnLetter = this.board.turn === "light" ? "w" : "b";
     fen += ` ${turnLetter} `;
     let castlingString = "";
-    const lightKing = this.getPieces().find(
+    const lightKing = pieces.find(
       (piece) => piece.type === "king" && piece.color === "light"
     );
-    const darkKing = this.getPieces().find(
+    const darkKing = pieces.find(
       (piece) => piece.type === "king" && piece.color === "dark"
     );
     if (lightKing) {
-      const lightKingRook = this.getPieces().find(
+      const lightKingRook = pieces.find(
         (piece) =>
           piece.type === "rook" &&
           piece.color === "light" &&
           piece.column > lightKing.column &&
           piece.moves === 0
       );
-      const lightQueenRook = this.getPieces().find(
+      const lightQueenRook = pieces.find(
         (piece) =>
           piece.type === "rook" &&
           piece.color === "light" &&
@@ -271,14 +274,14 @@ export class ChessController {
       castlingString += lightQueenRook ? "Q" : "";
     }
     if (darkKing) {
-      const darkKingRook = this.getPieces().find(
+      const darkKingRook = pieces.find(
         (piece) =>
           piece.type === "rook" &&
           piece.color === "dark" &&
           piece.column > darkKing.column &&
           piece.moves === 0
       );
-      const darkQueenRook = this.getPieces().find(
+      const darkQueenRook = pieces.find(
         (piece) =>
           piece.type === "rook" &&
           piece.color === "dark" &&
@@ -289,8 +292,17 @@ export class ChessController {
       castlingString += darkQueenRook ? "q" : "";
     }
     fen += castlingString || "-";
-    // To-Do: If a pawn has just made a two-square move, add en passant square
-    fen += " - ";
+    const enPassant = pieces.find(
+      (piece) => piece.id === this.board.enPassantId
+    );
+    if (enPassant) {
+      const rowOffset = this.board.turn === "dark" ? 1 : -1;
+      const rank = RANKS(this.getRows())[enPassant.row + rowOffset];
+      const file = FILES(this.getColumns())[enPassant.column];
+      fen += ` ${file}${rank} `;
+    } else {
+      fen += " - ";
+    }
     let movesSinceCaptureOrPawn = this.board.movesSinceCaptureOrPawn - 1;
     if (movesSinceCaptureOrPawn < 0) movesSinceCaptureOrPawn = 0;
     fen += `${movesSinceCaptureOrPawn} ${

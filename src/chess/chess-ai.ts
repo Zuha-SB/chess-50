@@ -88,6 +88,7 @@ export class ChessAI {
       if (!movement) return;
       console.log("Executing movement:", movement);
       this.controller.executeMovement(movement);
+      // TODO PROMOTE
     } catch (error) {
       console.error("Error executing Stockfish move:", error);
     }
