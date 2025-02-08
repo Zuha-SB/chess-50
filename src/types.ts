@@ -128,3 +128,11 @@ export interface Drawable<T> {
   fill: string;
   data?: T;
 }
+
+export interface StockfishResponse {
+  bestmove: string;
+  continuation: string;
+  evaluation: number;
+  mate: string;
+  success: boolean;
+}
