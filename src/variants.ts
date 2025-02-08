@@ -736,6 +736,9 @@ export const start = () => {
     controller.addEventListener("afterMove", () => {
       view.draw();
     });
+    controller.addEventListener("promote", () => {
+      view.draw();
+    });
     const ai = new ChessAI(controller);
     aiBtn.onclick = () => {
       ai.start();

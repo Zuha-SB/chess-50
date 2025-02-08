@@ -55,7 +55,6 @@ https://opengameart.org/content/100-cc0-sfx - plop
 
 # TODO
 
-- Promotion
 - Display chess notation (move history)
 - Display analysis
 - Timer

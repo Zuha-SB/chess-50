@@ -99,6 +99,7 @@ export class ChessView {
       lastMovement.to.row !== -1 &&
       lastMovement.to.column !== -1
     ) {
+      this.context.beginPath();
       this.context.rect(
         NOTATION_SIZE + TILE_SIZE * lastMovement.from.column,
         NOTATION_SIZE + TILE_SIZE * lastMovement.from.row,
@@ -308,7 +309,7 @@ export class ChessView {
     this.drawCheck();
     this.drawPieces();
     this.drawMovement();
-    this.drawTurn();
+    // this.drawTurn();
     this.controller.onDraw(this.context);
     this.drawPawnPromotion();
     this.drawEndGame();

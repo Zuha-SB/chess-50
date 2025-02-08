@@ -1,4 +1,12 @@
-import { backRow, emptyRow, filterNull, getPromotions, pawns } from "../chess";
+import {
+  backRow,
+  emptyRow,
+  filterNull,
+  getPromotions,
+  king,
+  pawn,
+  pawns,
+} from "../chess";
 import { FILES, RANKS } from "../constant";
 import type {
   BoardState,
@@ -104,8 +112,6 @@ export class ChessController {
     return this.config.hasCheck;
   }
   newGame() {
-    // this.getPromotions("light");
-    // this.getPromotions("dark");
     const board: BoardState = {
       capturedPieces: {
         dark: {},
@@ -161,7 +167,11 @@ export class ChessController {
   }
   async waitForReady() {
     await Promise.all(
-      this.getPieces().map((piece) => {
+      [
+        ...this.getPromotions("light"),
+        ...this.getPromotions("dark"),
+        ...this.getPieces(),
+      ].map((piece) => {
         if (!piece.image.complete) {
           return new Promise((resolve) => {
             piece.image.addEventListener("load", resolve);
