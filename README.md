@@ -56,9 +56,26 @@ https://opengameart.org/content/100-cc0-sfx - plop
 # TODO
 
 - Display chess notation (move history)
+  - pieces - KQRBN
+  - consider using icons - figuring algebraic notation
+  - Bxe5 - bishop captures on e5
+  - exd5 - pawn captures from e to d5
+  - disambiguation - letter (file) then number (rank)
+  - e8Q, e8=Q, e8(Q), e8/Q - promotion
+  - draw =
+  - castling 0-0 0-0-0
+  - check + is appended, ++ double check
+  - checkmate appends #
+  - 1-0 white wins
+  - 0-1 black wins
+  - 1/2-1/2 draw
+  - lose by default +/-, -/+, -/-
+- Web sockets
 - Display analysis
 - Timer
-- Web sockets
+
+Prompt:
+I would like to track chess moves using algebraic notation. After every move, I would like to add the notation to an array of strings. Make sure to include things like check, checkmate, captures, and disambiguation. I want it to be stored in the board state of the chess controller.
 
 App Idea
 
