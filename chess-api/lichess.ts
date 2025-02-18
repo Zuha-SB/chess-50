@@ -113,11 +113,24 @@ export class Lichess {
       clocks: "true",
       evals: "true",
       opening: "true",
+      pgnInJson: "true",
     });
     const games = await this.getText(
       username,
-      `/games/user/${username}?${params}`
+      `/games/user/${username}?${params}`,
+      {
+        headers: {
+          Accept: "application/x-ndjson",
+        },
+      }
     );
-    return pgnParse.parse(games);
+    return pgnParse.parse(
+      games
+        .split("\n")
+        .filter((_) => _)
+        .map((line) => JSON.parse(line))
+        .map((game) => game.pgn)
+        .join("\n\n")
+    );
   }
 }

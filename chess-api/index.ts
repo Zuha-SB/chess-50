@@ -3,8 +3,11 @@ import { ChessDotCom } from "./chess-dot-com";
 import { Lichess } from "./lichess";
 
 // are you losing by times or by tactics?
+
+// evaluation vs time loss - more time with bad eval requires more focus
 // what do people usually play?
-// which openings are challenging
+// learn declined lines
+// ending variants
 
 // graphs
 
@@ -12,6 +15,8 @@ import { Lichess } from "./lichess";
 // opening tree
 // https://www.365chess.com/eco/A46_Queen's_pawn_game
 // https://www.chessgames.com/perl/chessopening?eco=A46
+
+// Ruy Lopez (Spanish)
 
 // BOT IDEAS
 // leela or alphazero
@@ -26,14 +31,16 @@ type GamesByPeriod = Record<string, ParsedPGN[]>;
 
 type Color = "White" | "Black";
 
+type GameResult = "wins" | "loses" | "draws";
+
 interface TotalPercent {
   total: number;
   percent: string;
 }
 
-interface ByMonth {
+interface ByPeriod {
   date: string;
-  month: {
+  period: {
     count: number;
     wins: TotalPercent;
     draws: TotalPercent;
@@ -45,6 +52,14 @@ interface ByMonth {
     draws: TotalPercent;
     loses: TotalPercent;
   };
+}
+
+interface ByOpening {
+  name: string;
+  count: number;
+  wins: number;
+  loses: number;
+  draws: number;
 }
 
 const groupBy = <T>(list: T[], callback: (item: T) => string) => {
@@ -59,7 +74,7 @@ const groupBy = <T>(list: T[], callback: (item: T) => string) => {
 };
 
 const groupByMonth = (list: ParsedPGN[]) =>
-  groupByPeriod(list, (year, month, date) => `${year}-${month}`);
+  groupByPeriod(list, (year, month) => `${year}-${month}`);
 
 const groupByDate = (list: ParsedPGN[]) =>
   groupByPeriod(list, (year, month, date) => `${year}-${month}-${date}`);
@@ -79,6 +94,16 @@ const groupByPeriod = (
     const d = (date.getDate() + 1).toString().padStart(2, "0");
     return callback(y, m, d);
   });
+};
+
+const getResult = (game: ParsedPGN, username: string): GameResult => {
+  if (game.result === "1/2-1/2") {
+    return "draws";
+  }
+  const isWhite =
+    game.headers?.find((header) => header.name === "White")?.value === username;
+  const whiteWon = game.result === "1-0";
+  return whiteWon === isWhite ? "wins" : "loses";
 };
 
 const chessDotCom = new ChessDotCom();
@@ -108,7 +133,7 @@ const percent = (input: number) => {
   if (isNaN(input)) {
     return "0%";
   }
-  return `${Math.floor(input * 100)}%`;
+  return `${Math.round(input * 100)}%`;
 };
 
 const getStatisticsByPeriod = ({
@@ -138,7 +163,7 @@ const getStatisticsByPeriod = ({
 
       const item = {
         date: key,
-        month: {
+        period: {
           count: gamesThisMonth,
           wins: totalPercent(winsThisMonth, gamesThisMonth),
           loses: totalPercent(losesThisMonth, gamesThisMonth),
@@ -153,7 +178,11 @@ const getStatisticsByPeriod = ({
       };
       stats.push(item);
       return stats;
-    }, [] as ByMonth[]);
+    }, [] as ByPeriod[]);
+};
+
+const getOpening = (game: ParsedPGN) => {
+  return game.headers?.find((header) => header.name === "Opening")?.value;
 };
 
 const main = async () => {
@@ -181,16 +210,72 @@ const main = async () => {
   const losesByDate = groupByDate([...losesAsWhite, ...losesAsBlack]);
   const drawsByDate = groupByDate([...drawsAsWhite, ...drawsAsBlack]);
 
-  const openings = new Set(
-    games
-      .map(
-        (game) =>
-          game.headers
-            ?.find((header) => header.name === "Opening")
-            ?.value.split(":")[0]
-      )
-      .filter((_) => _ && _.length > 1)
-  );
+  const terminations = Object.entries(
+    groupBy(games, (game) => {
+      const termination =
+        game.headers?.find((header) => header.name === "Termination")?.value ??
+        "";
+      if (termination.endsWith("time") || termination.endsWith("abandoned")) {
+        return "Time forfeit";
+      }
+      if (
+        termination.endsWith("checkmate") ||
+        termination.endsWith("stalemate") ||
+        termination.endsWith("resignation")
+      ) {
+        return "Normal";
+      }
+      return termination;
+    })
+  )
+    .map(([key, games]) => {
+      const item = {
+        name: key,
+        count: games.length,
+        wins: 0,
+        loses: 0,
+        draws: 0,
+      };
+      games.forEach((game) => {
+        const result = getResult(game, username);
+        item[result]++;
+      });
+      return item;
+    })
+    .map((item) => ({
+      ...item,
+      wins: totalPercent(item.wins, item.count),
+      loses: totalPercent(item.loses, item.count),
+      draws: totalPercent(item.draws, item.count),
+    }));
+
+  const openings = Object.values(
+    games.reduce((openings, game) => {
+      const opening = getOpening(game);
+      if (opening) {
+        const result = getResult(game, username);
+        const item = (openings[opening] = openings[opening] ?? {
+          name: opening,
+          count: 0,
+          wins: 0,
+          loses: 0,
+          draws: 0,
+        });
+        item[result]++;
+        item.count++;
+      }
+      return openings;
+    }, {} as Record<string, ByOpening>)
+  )
+    .map((item) => {
+      return {
+        ...item,
+        wins: totalPercent(item.wins, item.count),
+        loses: totalPercent(item.loses, item.count),
+        draws: totalPercent(item.draws, item.count),
+      };
+    })
+    .sort((a, b) => a.count - b.count);
 
   console.log({
     total: games.length,
@@ -227,7 +312,8 @@ const main = async () => {
       losesByPeriod: losesByDate,
       drawsByPeriod: drawsByDate,
     }),
-    openings,
+    byOpenings: openings,
+    byTerminations: terminations,
   });
 };
 
