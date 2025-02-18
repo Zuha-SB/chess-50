@@ -1,12 +1,14 @@
 import { createHash, randomBytes } from "crypto";
 import open from "open";
 import { URL } from "url";
-import { cacheJSON } from "./cache";
-import { getJSON } from "./fetch";
+import { cache } from "./cache";
+import { fetchJson, fetchText } from "./fetch";
+import pgnParse from "pgn-parser";
 
 const CLIENT_ID = "chess-coach";
 const PORT = 1500;
-const REDIRECT_URL = `http://localhost:${PORT}`;
+const REDIRECT_URL = `http://localhost:${PORT}/`;
+const HOST = "https://lichess.org/";
 
 function generatePKCEPair() {
   const NUM_OF_BYTES = 22; // Total of 44 characters (1 Bytes = 2 char) (standard states that: 43 chars <= verifier <= 128 chars)
@@ -22,31 +24,29 @@ function generatePKCEPair() {
 
 export class Lichess {
   private async getCode(username: string) {
-    return cacheJSON(username, () => {
-      return new Promise(async (resolve) => {
-        const { verifier, challenge } = generatePKCEPair();
-        const params = new URLSearchParams({
-          response_type: "code",
-          client_id: CLIENT_ID,
-          redirect_uri: REDIRECT_URL,
-          code_challenge_method: "S256",
-          code_challenge: challenge,
-          username,
-        });
-        const server = Bun.serve({
-          fetch(req) {
-            const code = new URL(req.url).searchParams.get("code") ?? "";
-            resolve({
-              code,
-              verifier,
-            });
-            server.stop();
-            return new Response("Please manually close this window");
-          },
-          port: PORT,
-        });
-        await open(`https://lichess.org/oauth?${params}`);
+    return new Promise(async (resolve) => {
+      const { verifier, challenge } = generatePKCEPair();
+      const params = new URLSearchParams({
+        response_type: "code",
+        client_id: CLIENT_ID,
+        redirect_uri: REDIRECT_URL,
+        code_challenge_method: "S256",
+        code_challenge: challenge,
+        username,
       });
+      const server = Bun.serve({
+        fetch(req) {
+          const code = new URL(req.url).searchParams.get("code") ?? "";
+          resolve({
+            code,
+            verifier,
+          });
+          server.stop();
+          return new Response("Please manually close this window");
+        },
+        port: PORT,
+      });
+      await open(`${HOST}oauth?${params}`);
     });
   }
   private async getToken(code: string, verifier: string) {
@@ -57,41 +57,67 @@ export class Lichess {
       redirect_uri: REDIRECT_URL,
       client_id: CLIENT_ID,
     });
-    console.log(`
-        fetch("https://lichess.org/api/token", {
-            method : "POST",
-            headers : {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body : new URLSearchParams(${JSON.stringify({
-              grant_type: "authorization_code",
-              code,
-              code_verifier: verifier,
-              redirect_uri: REDIRECT_URL,
-              client_id: CLIENT_ID,
-            })})            
-        })
-
-        `);
-    const json = await getJSON(`https://lichess.org/api/token`, {
+    const json = await fetchJson(`${HOST}api/token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: formData,
     });
-    console.log(json);
     return json.access_token;
   }
   private async auth(username: string) {
-    const { code, verifier } = await this.getCode(username);
-    const token = await this.getToken(code, verifier);
+    return cache(username, async () => {
+      const { code, verifier } = await this.getCode(username);
+      const token = await this.getToken(code, verifier);
+      return token;
+    });
+  }
+  private async getText(
+    username: string,
+    url: string,
+    init?: FetchRequestInit
+  ) {
+    const token = await this.auth(username);
+    return fetchText(`${HOST}api${url}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      ...init,
+    });
+  }
+  private async getJSON(
+    username: string,
+    url: string,
+    init?: FetchRequestInit
+  ) {
+    const text = await this.getText(username, url, init);
+    return JSON.parse(text);
   }
   async getUser(username: string) {
-    await this.auth(username);
+    return this.getJSON(username, "/account");
   }
   async getGames(username: string) {
-    await this.auth(username);
-    return [];
+    const params = new URLSearchParams({
+      perfType: [
+        "ultraBullet",
+        "bullet",
+        "blitz",
+        "rapid",
+        "classical",
+        "correspondence",
+      ].join(","),
+      literate: "true",
+      division: "true",
+      accuracy: "true",
+      clocks: "true",
+      evals: "true",
+      opening: "true",
+    });
+    const games = await this.getText(
+      username,
+      `/games/user/${username}?${params}`
+    );
+    return pgnParse.parse(games);
   }
 }
